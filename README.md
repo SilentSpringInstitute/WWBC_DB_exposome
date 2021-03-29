@@ -32,7 +32,7 @@ Molecular descriptors are computed using CompDesc including MolWeight
 - Clean SMILES for each metabolite
 - Define name using DTXSID-precursor--reaction
 - cross with the DSSTOX DB local version (lastest 2020)
-- filter MW [100-1000] from values of MW from the biotransformer sofware and lipinski violation (< 3)
+- filter MW [100-1000] from values of MW from the biotransformer sofware and lipinski violations (< 3)
 
 ## 4 Combine chemicals in DB list and metabolites ("./../results/...final.csv")
 - Add ID (int) column as unique ID 

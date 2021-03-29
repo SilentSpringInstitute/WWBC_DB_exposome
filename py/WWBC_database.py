@@ -11,8 +11,6 @@ import smi2name
 import Biotransformer
 
 
-(P_DATA + "WWBC_MS_database_3.26.21.csv", minMW, maxMW, lipinski_violation, list_chemicals_metabolite, pr_out
-
 
 class WWWBC_database:
     def __init__(self, p_database, minMW, maxMW, lipinski_violation, list_chemicals_metabolite, pr_out):
@@ -34,7 +32,7 @@ class WWWBC_database:
 
         # compute biotransformation by chemicals
         pr_biotransformation = pathFolder.createFolder(self.pr_out + "biotransformer_output/")
-        self.computeBiotransformation("phaseII", pr_biotransformation)
+        #self.computeBiotransformation("phaseII", pr_biotransformation)
 
         # organize by type source
         self.organizeBiotransformationByChemSources(pr_biotransformation,  self.list_chemicals_metabolite)
@@ -235,6 +233,7 @@ class WWWBC_database:
                             if not SMILES_metabo_cleaned in list(d_out.keys()):
                                 d_out[SMILES_metabo_cleaned] = {}
                                 d_out[SMILES_metabo_cleaned] = d_biotransformation[inch]
+                                d_out[SMILES_metabo_cleaned]["name_cleaned"] = smi2name.pubchempySmiles2name(SMILES_metabo_cleaned)
                                 d_out[SMILES_metabo_cleaned]["DTXSID"] = DTXSID
                                 d_out[SMILES_metabo_cleaned]["Precursors"] = []
                                 d_out[SMILES_metabo_cleaned]["List Reaction"] = []
@@ -246,10 +245,10 @@ class WWWBC_database:
 
         
         filout = open(p_filout, "w")
-        filout.write("name\tDTXSID\tSMILES_metabolite\tPUBCHEM_CID\tMolecular formula\tMajor Isotope Mass\tALogP\tLipinski_Violations\tMetabolite ID\tReaction\tReaction ID\tEnzyme(s)\tPrecursors\n")
+        filout.write("name\tDTXSID\tSMILES_metabolite\tname_cleaned\tPUBCHEM_CID\tMolecular formula\tMajor Isotope Mass\tALogP\tLipinski_Violations\tMetabolite ID\tReaction\tReaction ID\tEnzyme(s)\tPrecursors\n")
         for chem_metabo in d_out.keys():
             chem_name = "__".join(["%s-%s"%(d_out[chem_metabo]["Precursors"][i], d_out[chem_metabo]["List Reaction"][i]) for i in range(0, len(d_out[chem_metabo]["Precursors"]))])
-            filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(chem_name, d_out[chem_metabo]["DTXSID"], chem_metabo, d_out[chem_metabo]["PUBCHEM_CID"], d_out[chem_metabo]["Molecular formula"], d_out[chem_metabo]["Major Isotope Mass"], d_out[chem_metabo]["ALogP"], d_out[chem_metabo]["Lipinski_Violations"], d_out[chem_metabo]["Metabolite ID"], d_out[chem_metabo]["Reaction"], d_out[chem_metabo]["Reaction ID"], d_out[chem_metabo]["Enzyme(s)"], ",".join(d_out[chem_metabo]["Precursors"])))
+            filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(chem_name, d_out[chem_metabo]["DTXSID"], chem_metabo, d_out[chem_metabo]["name_cleaned"], d_out[chem_metabo]["PUBCHEM_CID"], d_out[chem_metabo]["Molecular formula"], d_out[chem_metabo]["Major Isotope Mass"], d_out[chem_metabo]["ALogP"], d_out[chem_metabo]["Lipinski_Violations"], d_out[chem_metabo]["Metabolite ID"], d_out[chem_metabo]["Reaction"], d_out[chem_metabo]["Reaction ID"], d_out[chem_metabo]["Enzyme(s)"], ",".join(d_out[chem_metabo]["Precursors"])))
         filout.close()
 
         self.f_metabolite = p_filout
@@ -387,7 +386,7 @@ class WWWBC_database:
         print(self.d_DB_cleaned[list(self.d_DB_cleaned.keys())[0]])
 
 
-        p_filout = self.pr_out + self.name_DB + "_prep_final.csv"
+        p_filout = self.pr_out + self.name_DB + "_prep.csv"
         filout = open(p_filout, "w")
         filout.write("ID\tDTXSID\tDB_name\tCASRN\tname_original\tformula\tSMILES\tSMILES_cleaned\tname_cleaned\tformula_cleaned\tMolweight_cleaned\t%s\n"%("\t".join(l_prop_data)))
 
@@ -403,7 +402,7 @@ class WWWBC_database:
         i = 0
         imax = len(l_chem_metabo)
         while i < imax:
-            filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(ID, self.d_metabolite_cleaned[l_chem_metabo[i]]["DTXSID"], self.d_metabolite_cleaned[l_chem_metabo[i]]["name"], "-", "-", self.d_metabolite_cleaned[l_chem_metabo[i]]["Molecular formula"], self.d_metabolite_cleaned[l_chem_metabo[i]]["SMILES_metabolite"], self.d_metabolite_cleaned[l_chem_metabo[i]]["SMILES_metabolite"], "", self.d_metabolite_cleaned[l_chem_metabo[i]]["Molecular formula"], self.d_metabolite_cleaned[l_chem_metabo[i]]["Major Isotope Mass"], "\t".join("metabolite" if k_prop == "source" else  "-" for k_prop in l_prop_data)))
+            filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(ID, self.d_metabolite_cleaned[l_chem_metabo[i]]["DTXSID"], self.d_metabolite_cleaned[l_chem_metabo[i]]["name"], "-", "-", self.d_metabolite_cleaned[l_chem_metabo[i]]["Molecular formula"], self.d_metabolite_cleaned[l_chem_metabo[i]]["SMILES_metabolite"], self.d_metabolite_cleaned[l_chem_metabo[i]]["SMILES_metabolite"], self.d_metabolite_cleaned[l_chem_metabo[i]]["name_cleaned"], self.d_metabolite_cleaned[l_chem_metabo[i]]["Molecular formula"], self.d_metabolite_cleaned[l_chem_metabo[i]]["Major Isotope Mass"], "\t".join("metabolite" if k_prop == "source" else  "-" for k_prop in l_prop_data)))
             i = i + 1
             ID = ID + 1
 

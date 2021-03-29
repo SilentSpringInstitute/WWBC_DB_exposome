@@ -15,10 +15,13 @@ def CIRconvert(smi):
 
 
 def pubchempySmiles2name(smiles):
-
-    try:
-        compounds = pubchempy.get_compounds(smiles, namespace='smiles')
-        match = compounds[0]
-        return match.iupac_name
-    except:
-        return "-"
+    
+    try: compounds = pubchempy.get_compounds(smiles, namespace='smiles')
+    except: return "None"
+    match = compounds[0]
+    name = match.iupac_name
+    print(name)
+    if name == None:
+        return "None"
+    else:
+        return name

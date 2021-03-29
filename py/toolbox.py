@@ -217,9 +217,12 @@ def searchDTXIDFromSMILES(SMILES_cleaned):
     extract_DTXSID = cDB.execCMD("SELECT dsstox_id FROM chemicals WHERE smiles_clean='%s'"%(SMILES_cleaned))
 
     if extract_DTXSID == []:
-        return "None"
+        return "-"
     else:
         DTXSID = extract_DTXSID[0][0]
-        return DTXSID
+        if DTXSID == None:
+            return "-"
+        else:
+            return DTXSID
 
 
