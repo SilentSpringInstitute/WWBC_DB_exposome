@@ -386,7 +386,7 @@ class WWWBC_database:
         print(self.d_DB_cleaned[list(self.d_DB_cleaned.keys())[0]])
 
 
-        p_filout = self.pr_out + self.name_DB + "_prep.csv"
+        p_filout = self.pr_out + self.name_DB + "_prepForAnotation.csv"
         filout = open(p_filout, "w")
         filout.write("ID\tDTXSID\tDB_name\tCASRN\tname_original\tformula\tSMILES\tSMILES_cleaned\tname_cleaned\tformula_cleaned\tMolweight_cleaned\t%s\n"%("\t".join(l_prop_data)))
 
