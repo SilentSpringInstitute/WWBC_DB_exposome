@@ -1,5 +1,6 @@
-# Exposome 
-Objective: clean a database of chemicals and compute MW with the structure cleaned.
+# WWBC DB exposome
+Objective: prepare an chemical database for MS non targeted analysis. 
+
 
 ## Dependancies
 - python 3.8 (development on Conda - django-env)
