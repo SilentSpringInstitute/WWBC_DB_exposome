@@ -205,6 +205,7 @@ class WWWBC_database:
         i = 0
         imax = len(l_chem)
         while i < imax:
+            print(self.d_prep[l_chem[i]])
             for chem_class in l_chem_classes:
                 if self.d_prep[l_chem[i]][chem_class] == "1":
                     SMILES_clean = self.d_prep[l_chem[i]]["SMILES_cleaned"]
