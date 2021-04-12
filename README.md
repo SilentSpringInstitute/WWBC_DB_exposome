@@ -37,3 +37,7 @@ Molecular descriptors are computed using CompDesc including MolWeight
 
 ## 4 Combine chemicals in DB list and metabolites ("./../results/...final.csv")
 - Add ID (int) column as unique ID 
+
+# TODO list
+- ~~4-07-2021: reload CASRN from DTXSID and add ' in the CASRN col~~
+- ~~4-07-2021: check col Phthalate duplicate (P-AM)~~

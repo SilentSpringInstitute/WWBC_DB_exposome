@@ -20,5 +20,5 @@ list_chemicals_metabolite = ["Drug_UCSF_PXYS", "Drug_most comon and haz", "Disin
 
 #  RUN  #
 #########
-c_db = WWBC_database.WWWBC_database(P_DATA + "WWBC_MS_database_3.26.21.csv", minMW, maxMW, lipinski_violation, list_chemicals_metabolite, pr_out)
+c_db = WWBC_database.WWWBC_database(P_DATA + "WWBC_MS_database_4.7.21.csv", minMW, maxMW, lipinski_violation, list_chemicals_metabolite, pr_out)
 c_db.main()

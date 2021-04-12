@@ -11,7 +11,6 @@ import smi2name
 import Biotransformer
 
 
-
 class WWWBC_database:
     def __init__(self, p_database, minMW, maxMW, lipinski_violation, list_chemicals_metabolite, pr_out):
 
@@ -32,7 +31,7 @@ class WWWBC_database:
 
         # compute biotransformation by chemicals
         pr_biotransformation = pathFolder.createFolder(self.pr_out + "biotransformer_output/")
-        #self.computeBiotransformation("phaseII", pr_biotransformation)
+        self.computeBiotransformation("phaseII", pr_biotransformation)
 
         # organize by type source
         self.organizeBiotransformationByChemSources(pr_biotransformation,  self.list_chemicals_metabolite)
@@ -100,7 +99,6 @@ class WWWBC_database:
                             self.d_data[k_add]["ID"] = k_add
                             try:self.d_data[k_add]["Formula"] = list(set(self.d_data[k_add]["Formula"].split(", ")))[j]
                             except:self.d_data[k_add]["Formula"] = list(set(self.d_data[k_add]["Formula"].split(", ")))[0]
-                            print(self.d_data[l_chem[i]])
                             try:self.d_data[k_add]["CASRN"] = list(set(self.d_data[k_add]["CASRN"].split(", ")))[j]
                             except:self.d_data[k_add]["CASRN"] = list(set(self.d_data[k_add]["CASRN"].split(", ")))[0]
                             try:self.d_data[k_add]["Compound"] = list(set(self.d_data[k_add]["Compound"].split(", ")))[j]
@@ -160,6 +158,11 @@ class WWWBC_database:
             #filout.write("ID\tDTXSID\tSMILES\tSMILES_cleaned\tname_cleaned\tformula\tformula-H\tMolweight\tMolweight-H\n")
             filout.write("ID\tDTXSID\tCASRN\tname_original\tformula\tSMILES\tSMILES_cleaned\tname_cleaned\tformula_cleaned\tMolweight_cleaned\t%s\n"%("\t".join(l_prop_data)))
             for chem in self.d_prep.keys():
+                
+                # reformate CAS properly
+                if search("/", self.d_data[chem]["CASRN"]):
+                    self.d_data[chem]["CASRN"] = toolbox.searchCASRNFromDTXSID(self.d_data[chem]["DTXSID"])
+
                 #filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(self.d_data[chem]["ID"], self.d_data[chem]["DTXSID"], self.d_data[chem]["SMILES"], self.d_data[chem]["SMILES_cleaned"], self.d_data[chem]["name_cleaned"], self.d_data[chem]["formula"], self.d_data[chem]["formula-H"], self.d_data[chem]["Molweight"], self.d_data[chem]["Molweight-H"]))
                 filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(self.d_data[chem]["ID"], self.d_data[chem]["DTXSID"],  self.d_data[chem]["CASRN"], self.d_data[chem]["Compound"], self.d_data[chem]["Formula"], self.d_data[chem]["SMILES"], self.d_prep[chem]["SMILES_cleaned"], self.d_prep[chem]["name_cleaned"], self.d_prep[chem]["formula"], self.d_prep[chem]["Molweight_cleaned"], "\t".join(str(self.d_data[chem][k_prop]) for k_prop in l_prop_data)))
             filout.close()
@@ -363,6 +366,9 @@ class WWWBC_database:
             flog.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(self.d_data[chem]["ID"], self.d_data[chem]["DTXSID"],  self.d_data[chem]["CASRN"], self.d_data[chem]["Compound"].replace(" ", ","), self.d_data[chem]["Formula"], self.d_data[chem]["SMILES"], self.d_prep[chem]["SMILES_cleaned"], self.d_prep[chem]["name_cleaned"], self.d_prep[chem]["formula"], self.d_prep[chem]["Molweight_cleaned"], "\t".join(str(self.d_data[chem][k_prop]) for k_prop in l_prop_data)))
         flog.close()        
 
+        self.d_DB_cleaned = toolbox.loadMatrix(p_filout)
+
+
 
     def fusionDBAndMetabolite(self):
 
@@ -395,14 +401,14 @@ class WWWBC_database:
         imax = len(l_chem_DB)
 
         while i < imax:
-            filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(ID, self.d_DB_cleaned[l_chem_DB[i]]["DTXSID"], self.d_DB_cleaned[l_chem_DB[i]]["DTXSID"], self.d_DB_cleaned[l_chem_DB[i]]["CASRN"], self.d_DB_cleaned[l_chem_DB[i]]["name_original"], self.d_DB_cleaned[l_chem_DB[i]]["formula"], self.d_DB_cleaned[l_chem_DB[i]]["SMILES"], self.d_DB_cleaned[l_chem_DB[i]]["SMILES_cleaned"], self.d_DB_cleaned[l_chem_DB[i]]["name_cleaned"], self.d_DB_cleaned[l_chem_DB[i]]["formula"], self.d_DB_cleaned[l_chem_DB[i]]["Molweight_cleaned"], "\t".join(str(self.d_DB_cleaned[l_chem_DB[i]][k_prop]) for k_prop in l_prop_data)))
+            filout.write("%s\t%s\t%s\t'%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(ID, self.d_DB_cleaned[l_chem_DB[i]]["DTXSID"], self.d_DB_cleaned[l_chem_DB[i]]["DTXSID"], self.d_DB_cleaned[l_chem_DB[i]]["CASRN"], self.d_DB_cleaned[l_chem_DB[i]]["name_original"], self.d_DB_cleaned[l_chem_DB[i]]["formula"], self.d_DB_cleaned[l_chem_DB[i]]["SMILES"], self.d_DB_cleaned[l_chem_DB[i]]["SMILES_cleaned"], self.d_DB_cleaned[l_chem_DB[i]]["name_cleaned"], self.d_DB_cleaned[l_chem_DB[i]]["formula"], self.d_DB_cleaned[l_chem_DB[i]]["Molweight_cleaned"], "\t".join(str(self.d_DB_cleaned[l_chem_DB[i]][k_prop]) for k_prop in l_prop_data)))
             i = i + 1
             ID = ID + 1
 
         i = 0
         imax = len(l_chem_metabo)
         while i < imax:
-            filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(ID, self.d_metabolite_cleaned[l_chem_metabo[i]]["DTXSID"], self.d_metabolite_cleaned[l_chem_metabo[i]]["name"], "-", "-", self.d_metabolite_cleaned[l_chem_metabo[i]]["Molecular formula"], self.d_metabolite_cleaned[l_chem_metabo[i]]["SMILES_metabolite"], self.d_metabolite_cleaned[l_chem_metabo[i]]["SMILES_metabolite"], self.d_metabolite_cleaned[l_chem_metabo[i]]["name_cleaned"], self.d_metabolite_cleaned[l_chem_metabo[i]]["Molecular formula"], self.d_metabolite_cleaned[l_chem_metabo[i]]["Major Isotope Mass"], "\t".join("metabolite" if k_prop == "source" else  "-" for k_prop in l_prop_data)))
+            filout.write("%s\t%s\t%s\t'%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(ID, self.d_metabolite_cleaned[l_chem_metabo[i]]["DTXSID"], self.d_metabolite_cleaned[l_chem_metabo[i]]["name"], "-", "-", self.d_metabolite_cleaned[l_chem_metabo[i]]["Molecular formula"], self.d_metabolite_cleaned[l_chem_metabo[i]]["SMILES_metabolite"], self.d_metabolite_cleaned[l_chem_metabo[i]]["SMILES_metabolite"], self.d_metabolite_cleaned[l_chem_metabo[i]]["name_cleaned"], self.d_metabolite_cleaned[l_chem_metabo[i]]["Molecular formula"], self.d_metabolite_cleaned[l_chem_metabo[i]]["Major Isotope Mass"], "\t".join("metabolite" if k_prop == "source" else  "-" for k_prop in l_prop_data)))
             i = i + 1
             ID = ID + 1
 

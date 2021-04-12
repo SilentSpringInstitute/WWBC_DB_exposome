@@ -225,4 +225,18 @@ def searchDTXIDFromSMILES(SMILES_cleaned):
         else:
             return DTXSID
 
+def searchCASRNFromDTXSID(dtxsid):
+
+    cDB = DBrequest.DBrequest()
+    extract_CASRN = cDB.execCMD("SELECT casn FROM chemicals WHERE dsstox_id='%s'"%(dtxsid))
+
+    if extract_CASRN == []:
+        return "-"
+    else:
+        CASRN = extract_CASRN[0][0]
+        if CASRN == None:
+            return "-"
+        else:
+            return CASRN  
+
 

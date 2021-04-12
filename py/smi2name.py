@@ -20,7 +20,6 @@ def pubchempySmiles2name(smiles):
     except: return "None"
     match = compounds[0]
     name = match.iupac_name
-    print(name)
     if name == None:
         return "None"
     else:
