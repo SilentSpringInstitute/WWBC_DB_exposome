@@ -219,11 +219,11 @@ def searchDTXIDFromSMILES(SMILES_cleaned):
     extract_DTXSID = cDB.execCMD("SELECT dsstox_id FROM chemicals WHERE smiles_clean='%s'"%(SMILES_cleaned))
 
     if extract_DTXSID == []:
-        return "-"
+        return ""
     else:
         DTXSID = extract_DTXSID[0][0]
         if DTXSID == None:
-            return "-"
+            return ""
         else:
             return DTXSID
 
@@ -233,11 +233,11 @@ def searchCASRNFromDTXSID(dtxsid):
     extract_CASRN = cDB.execCMD("SELECT casn FROM chemicals WHERE dsstox_id='%s'"%(dtxsid))
 
     if extract_CASRN == []:
-        return "-"
+        return ""
     else:
         CASRN = extract_CASRN[0][0]
         if CASRN == None:
-            return "-"
+            return ""
         else:
             return CASRN  
 

@@ -7,7 +7,7 @@ Objective: prepare an chemical database for MS non targeted analysis.
 - RDKit (> 3.1): http://rdkit.org/docs/index.html
 - molVS (> 1): https://molvs.readthedocs.io/en/latest/index.html
 - CompDesc ($pip install -i https://test.pypi.org/simple/ CompDesc)
-- biotransformer (http://biotransformer.ca/)
+- biotransformer (http://biotransformer.ca/) => request java install
 - request database.init for DTXSID search
 
 ## 0 Dataset
