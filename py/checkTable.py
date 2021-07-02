@@ -14,7 +14,7 @@ class checkTable:
 
     def loadFile(self):
 
-        self.d_table1 = toolbox.loadMatrix(self.p_table1, sep = "\t")
+        self.d_table1 = toolbox.loadMatrix(self.p_table1, sep = ",")
         self.d_table2 = toolbox.loadMatrix(self.p_table2, sep = ",")
 
     def compareCol(self):
@@ -52,6 +52,11 @@ class checkTable:
                     l_col_diff = []
                     for intercol in self.l_inter_col:
                         if self.d_table1[k1][intercol] == "-": self.d_table1[k1][intercol] = ""
+
+                        try: self.d_table1[k1][intercol] = str(int(float(self.d_table1[k1][intercol])))
+                        except:pass
+                        try: self.d_table2[k2][intercol] = str(int(float(self.d_table2[k2][intercol])))
+                        except:pass
                         if self.d_table2[k2][intercol] == "-": self.d_table2[k2][intercol] = ""
                         if self.d_table1[k1][intercol] != self.d_table2[k2][intercol] and not intercol in l_skip_col :
                             if not search(self.d_table1[k1][intercol], self.d_table2[k2][intercol]):
@@ -76,7 +81,7 @@ class checkTable:
 
     
 
-pfile1 = "./../../results/WWBC_MS_database_4.7.21_prepForAnotation.csv"
+pfile1 = "./../../results/WWBC_MS_database_6.30.21_prepForAnotation.csv"
 
 # check positive nurse
 #pfile2 = "./../../data/result_NTA/20210627FragList_FF_nursesPOS_cleaned.csv"
@@ -94,6 +99,12 @@ p_out = "./../../results/diff_table/log_DB_jessica.txt"
 # check database from Jessica
 pfile2 = "./../../data/result_NTA/2021.06.27ssi_db_withParentCompunds.csv"
 p_out = "./../../results/diff_table/log_2021.06.27ssi.txt"
+
+# vincent
+pfile1 = "./../../data/result_NTA/List_matched_no_filter_neg_FB_06.21_rar.csv"
+pfile2 = "./../../data/result_NTA/List_matched_no_filter_neg_FB_06.21.csv"
+p_out = "./../../results/diff_table/log_rar_vincent.txt"
+
 
 
 cdiff = checkTable(pfile1, pfile2, p_out)
