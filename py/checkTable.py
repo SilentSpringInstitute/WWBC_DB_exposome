@@ -15,7 +15,7 @@ class checkTable:
     def loadFile(self):
 
         self.d_table1 = toolbox.loadMatrix(self.p_table1, sep = "\t")
-        self.d_table2 = toolbox.loadMatrix(self.p_table2, sep = ",")
+        self.d_table2 = toolbox.loadMatrix(self.p_table2, sep = "\t")
 
     def compareCol(self):
 
@@ -28,6 +28,8 @@ class checkTable:
 
         self.l_inter_col = l_inter_col
 
+        self.f_log.write("File 1 => %s rows\n"%(len(list(self.d_table1.keys()))))
+        self.f_log.write("File 2 => %s rows\n"%(len(list(self.d_table2.keys()))))
         self.f_log.write("File 1 => %s col\n"%(len(l_col_table1)))
         self.f_log.write("File 2 => %s col\n"%(len(l_col_table2)))
         self.f_log.write("Intersection => %s col\n"%(len(l_inter_col)))
@@ -58,10 +60,10 @@ class checkTable:
                         try: self.d_table2[k2][intercol] = str(int(float(self.d_table2[k2][intercol])))
                         except:pass
                         if self.d_table2[k2][intercol] == "-": self.d_table2[k2][intercol] = ""
-                        if self.d_table1[k1][intercol] != self.d_table2[k2][intercol] and not intercol in l_skip_col :
-                            if not search(self.d_table1[k1][intercol], self.d_table2[k2][intercol]):
-                                flag = 1
-                                l_col_diff.append(intercol)
+                        #if self.d_table1[k1][intercol] != self.d_table2[k2][intercol] and not intercol in l_skip_col :
+                            #if not search(self.d_table1[k1][intercol], self.d_table2[k2][intercol]):
+                            #    flag = 1
+                            #    l_col_diff.append(intercol)
                             
                             
                     if flag == 0:
@@ -108,6 +110,12 @@ p_out = "./../../results/diff_table/log_2021.06.27ssi.txt"
 #vincent rerun 07-21
 pfile2 = "./../../data/result_NTA/List_matched_no_filter_pos_FB_07.21.csv"
 p_out = "./../../results/diff_table/log_FB_pos_vincent_07-21.txt"
+
+
+# check diff database
+pfile1 = "./../../results/WWBC_MS_database_6.30.21_prepForAnotation.csv"
+pfile2 = "./../../results/WWBC_MS_database_4.7.21_prepForAnotation.csv"
+p_out = "./../../results/diff_table/DB_diff.txt"
 
 
 cdiff = checkTable(pfile1, pfile2, p_out)
