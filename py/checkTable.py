@@ -14,7 +14,7 @@ class checkTable:
 
     def loadFile(self):
 
-        self.d_table1 = toolbox.loadMatrix(self.p_table1, sep = ",")
+        self.d_table1 = toolbox.loadMatrix(self.p_table1, sep = "\t")
         self.d_table2 = toolbox.loadMatrix(self.p_table2, sep = ",")
 
     def compareCol(self):
@@ -101,10 +101,13 @@ pfile2 = "./../../data/result_NTA/2021.06.27ssi_db_withParentCompunds.csv"
 p_out = "./../../results/diff_table/log_2021.06.27ssi.txt"
 
 # vincent
-pfile1 = "./../../data/result_NTA/List_matched_no_filter_neg_FB_06.21_rar.csv"
-pfile2 = "./../../data/result_NTA/List_matched_no_filter_neg_FB_06.21.csv"
-p_out = "./../../results/diff_table/log_rar_vincent.txt"
+#pfile1 = "./../../data/result_NTA/List_matched_no_filter_neg_FB_06.21_rar.csv"
+#pfile2 = "./../../data/result_NTA/List_matched_no_filter_neg_FB_06.21.csv"
+#p_out = "./../../results/diff_table/log_rar_vincent.txt"
 
+#vincent rerun 07-21
+pfile2 = "./../../data/result_NTA/List_matched_no_filter_pos_FB_07.21.csv"
+p_out = "./../../results/diff_table/log_FB_pos_vincent_07-21.txt"
 
 
 cdiff = checkTable(pfile1, pfile2, p_out)
