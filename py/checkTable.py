@@ -15,7 +15,7 @@ class checkTable:
     def loadFile(self):
 
         self.d_table1 = toolbox.loadMatrix(self.p_table1, sep = "\t")
-        self.d_table2 = toolbox.loadMatrix(self.p_table2, sep = "\t")
+        self.d_table2 = toolbox.loadMatrix(self.p_table2, sep = ",")
 
     def compareCol(self):
 
@@ -60,10 +60,10 @@ class checkTable:
                         try: self.d_table2[k2][intercol] = str(int(float(self.d_table2[k2][intercol])))
                         except:pass
                         if self.d_table2[k2][intercol] == "-": self.d_table2[k2][intercol] = ""
-                        #if self.d_table1[k1][intercol] != self.d_table2[k2][intercol] and not intercol in l_skip_col :
-                            #if not search(self.d_table1[k1][intercol], self.d_table2[k2][intercol]):
-                            #    flag = 1
-                            #    l_col_diff.append(intercol)
+                        if self.d_table1[k1][intercol] != self.d_table2[k2][intercol] and not intercol in l_skip_col :
+                            if not search(self.d_table1[k1][intercol], self.d_table2[k2][intercol]):
+                                flag = 1
+                                l_col_diff.append(intercol)
                             
                             
                     if flag == 0:
@@ -116,6 +116,22 @@ p_out = "./../../results/diff_table/log_FB_pos_vincent_07-21.txt"
 pfile1 = "./../../results/WWBC_MS_database_6.30.21_prepForAnotation.csv"
 pfile2 = "./../../results/WWBC_MS_database_4.7.21_prepForAnotation.csv"
 p_out = "./../../results/diff_table/DB_diff.txt"
+
+
+# chech jessica
+pfile1 = "./../../results/WWBC_MS_database_6.30.21_prepForAnotation.csv"
+pfile2 = "./../../data/result_NTA/2021.07.09ssi_db_withParentCompunds.csv"
+p_out = "./../../results/diff_table/log_2021.07.09ssi_db_withParentCompunds.txt"
+
+#vincent rerun 07-21
+pfile1 = "./../../results/WWBC_MS_database_6.30.21_prepForAnotation.csv"
+pfile2 = "./../../data/result_NTA/List_matched_no_filter_neg_FB_07.21.csv"
+p_out = "./../../results/diff_table/log_FB_neg_vincent_07-21.txt"
+
+
+# concatene POS_NEG_FF
+pfile2 = "./../../data/result_NTA/20210713_FullFragList_FF_nursesPOS_sheet2.csv"
+p_out = "./../../results/diff_table/log_20210713_FullFragList_FF_nursesPOS_sheet2.txt"
 
 
 cdiff = checkTable(pfile1, pfile2, p_out)
