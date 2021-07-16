@@ -24,6 +24,8 @@ list_chemicals_metabolite = ["Drug_UCSF_PXYS", "Drug_most comon and haz", "Disin
 c_db = WWBC_database.WWWBC_database(PR_DATA + "WWBC_MS_database_4.7.21.csv", minMW, maxMW, lipinski_violation, list_chemicals_metabolite, PR_RESULTS, "WWBC_MS_database_6.30.21")
 c_db.main()
 
+
+
 STOPHEREINMAIN
 # Extract substructure from matches #
 #####################################
