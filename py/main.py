@@ -1,7 +1,6 @@
 from os import path
-import WWBC_database
-import pathFolder
-import matchChemicals
+from .WWBC_database import WWBC_database, matchChemicals
+from .toolbox import pathFolder
 
 
 # define folder #
@@ -12,6 +11,7 @@ PR_RESULTS = pathFolder.createFolder(PR_ROOT + "results/")
 
 # SET OF CRITERIA #
 ###################
+# may need to be place as in input file
 
 minMW = 100
 maxMW = 1000
@@ -21,8 +21,18 @@ list_chemicals_metabolite = ["Drug_UCSF_PXYS", "Drug_most comon and haz", "Disin
 
 #  RUN - prepare database  #
 ############################
-c_db = WWBC_database.WWWBC_database(PR_DATA + "WWBC_MS_database_4.7.21.csv", minMW, maxMW, lipinski_violation, list_chemicals_metabolite, PR_RESULTS, "WWBC_MS_database_6.30.21")
-c_db.main()
+#c_db = WWBC_database.WWWBC_database(PR_DATA + "WWBC_MS_database_4.7.21.csv", minMW, maxMW, lipinski_violation, list_chemicals_metabolite, PR_RESULTS, "WWBC_MS_database_6.30.21")
+#c_db.main()
+
+
+# Filter anotation #
+####################
+
+p_filter = PR_DATA + "filter_criteria.txt"
+p_matched_neg = PR_DATA + "result_NTA_tofilterforseg/List_matched_no_filter_neg_FB_07.21.csv"
+
+
+
 
 
 

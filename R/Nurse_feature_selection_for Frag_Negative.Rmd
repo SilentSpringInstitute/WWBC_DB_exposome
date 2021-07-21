@@ -1,0 +1,76 @@
+---
+title: "Nurse slection"
+author: "Jessica Trowbridge"
+date: "7/15/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+```
+
+import data
+```{r}
+Nurse_sum <- read.csv(file = "../../data/result_NTA_tofilterforseg/List_matched_no_filter_neg_FB_07.21.csv")
+```
+
+Select using criteria from the spreadsheet
+
+```{r}
+
+#start with 2338 Features
+
+# 1. Percent field blank is </=50% n = 1730
+FBlim_nurse_sum <- Nurse_sum%>%
+  filter(percent_FB<= 50)
+
+
+# Calculate the summary stats to filter on later
+FBlim_nurse_sum2 <- FBlim_nurse_sum %>%
+  mutate(cvNvOW = cv_N/cv_OW, 
+         sd_avg_N = mean(sd_N), 
+         sdN_GE_sdavg = ifelse(sd_N>=sd_avg_N, 1, 0), 
+         Drug_UCSF_cond = ifelse(Drug_UCSF_PXYS =="1", 1, 0), 
+         ERactive_AUC_cond = ifelse(ERactive_ER_AUC >= 0.01, 1, 0), 
+         ERactiveAUC_LD0 = ifelse(ERactive_ER_AUC==0, 1, 0))
+
+table(FBlim_nurse_sum$ERactive_ER_AUC>=0.01)
+table(FBlim_nurse_sum$ERactive_AUC_cond)
+
+#3 UCSFdrug, FR, PFAS, disinfectant, E2Up, P4Up, Estrogen receptor, nitroPAH, Pellizzari, Phthalate, MC or MGD 
+# Higher intensity or DF in Nurses;  n = 675
+# cb_n/cv_ow >= 1.5; n = 172
+
+#Higher intensity or DF in Nurses & cv_n/cv_OW >=1.5; n = 774
+
+# 2. Intensity OR detection frequency is higher in Nurses OR the CV is greater in Nurses than OW OR sd in nurses is greater than average SD in nurses. 
+lim_nurse_sum <- FBlim_nurse_sum %>%
+  filter(higher_intensity_N==1 |DF_high_N==1|cvNvOW>=1.5|sdN_GE_sdavg)
+  # mutate(path_int_df = ifelse(higher_intensity_N==1|DF_high_N ==1, 1, 0), 
+  #        path_cv = ifelse(cvNvOW >=1.5, 1, 0), 
+  #        path_sd = sdN_GE_sdavg)
+
+
+#calculate the chemicals of interest with all the criteria that overlap between intensity, DF, CV and SD difference. Then find chemicals of itnerest with ER active, and exposure pred for each group. 
+lim_nurse_sum <- lim_nurse_sum %>%
+  rowwise(featureid)%>%
+  mutate(of_interest_all = sum(c(Drug_UCSF_cond, E2Up_bin, P4Up_bin, PFAS, FRs, Disinfectant, nitroPAH_bin, pellizzari_bin, phthalate, MC, MGDev), na.rm = TRUE), 
+         of_interest_int_cv = ifelse(higher_intensity_N==1|DF_high_N==1|cvNvOW>=1.5, sum(c(ERactive_AUC_cond), na.rm = TRUE),0), #if intensity or DF or CV is greater in Nurses than OW. 
+         of_int_sd = ifelse(sdN_GE_sdavg==1, sum(c(ERactiveAUC_LD0, exposurepred_bin), na.rm = TRUE), 0), #if the SD in nurses is higher than average
+         of_interest_sum = sum(c(of_interest_all, of_interest_int_cv, of_int_sd)), 
+         of_interest_cat = ifelse(of_interest_sum>=1, 1, 0)) #sum the columns of interest to combine
+
+
+table(lim_nurse_sum$of_interest_cat)
+#sum the two of interest columns. 
+
+write.csv(lim_nurse_sum, "../../data/result_NTA_tofilterforseg/list_filtered_jessica.csv")
+
+```
+
+
