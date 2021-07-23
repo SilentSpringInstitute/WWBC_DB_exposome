@@ -1,4 +1,4 @@
-import DBrequest
+from .DBrequest import DBrequest
 import pandas
 from re import search
 
@@ -61,13 +61,13 @@ def loadMatrix(pmatrixIn, sep = "\t"):
 
     # case where R written
     if len(lheaders) == (len(lval1) -1):
-        lheaders = ["ID"] + lheaders
+        lheaders = ["X"] + lheaders
 
 
     i = 0
     while i < len(lheaders):
         if lheaders[i] == "":
-            lheaders[i] = "ID"
+            lheaders[i] = "X"
         i += 1
 
     i = 1

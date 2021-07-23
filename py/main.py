@@ -1,6 +1,8 @@
 from os import path
-from .WWBC_database import WWBC_database, matchChemicals
-from .toolbox import pathFolder
+from WWBC_database import WWBC_database, matchChemicals
+from toolbox import pathFolder
+from filterAnnotation import filterAnnotation
+
 
 
 # define folder #
@@ -28,13 +30,15 @@ list_chemicals_metabolite = ["Drug_UCSF_PXYS", "Drug_most comon and haz", "Disin
 # Filter anotation #
 ####################
 
-p_filter = PR_DATA + "filter_criteria.txt"
+p_filter = PR_DATA + "result_NTA_tofilterforseg/filter_criteria.txt"
 p_matched_neg = PR_DATA + "result_NTA_tofilterforseg/List_matched_no_filter_neg_FB_07.21.csv"
+pr_out = pathFolder.createFolder(PR_RESULTS + "filter_annotation/")
 
+c_filteria = filterAnnotation.filterAnnotation(p_matched_neg, p_filter, pr_out)
+c_filteria.loadCriteria()
+c_filteria.filterByCriteria()
 
-
-
-
+from checkPoint import checkTable
 
 STOPHEREINMAIN
 # Extract substructure from matches #

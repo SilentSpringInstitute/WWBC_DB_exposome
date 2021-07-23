@@ -1,6 +1,5 @@
 from os import path
-import runExternal
-import toolbox
+from toolbox import runExternal 
 
 class Biotransformer:
     def __init__(self, smi_in, inchikey, pr_out):

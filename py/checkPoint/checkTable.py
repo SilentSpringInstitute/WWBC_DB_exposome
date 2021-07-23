@@ -1,4 +1,4 @@
-import toolbox
+from toolbox import toolbox
 from re import search
 
 
@@ -134,10 +134,15 @@ pfile2 = "./../../data/result_NTA/20210713_FullFragList_FF_nursesPOS_sheet2.csv"
 p_out = "./../../results/diff_table/log_20210713_FullFragList_FF_nursesPOS_sheet2.txt"
 
 
+# check after filtering file
+pfile2 = "/mnt/c/Users/AlexandreBorrel/research/SSI/exposome/data/result_NTA_tofilterforseg/list_filtered_jessica_dup.csv"
+pfile1 = "/mnt/c/Users/AlexandreBorrel/research/SSI/exposome/results/filter_annotation/filtered_annotation.csv"
+p_out = "./../../results/diff_table/log_diff_annotation.txt"
+
 cdiff = checkTable(pfile1, pfile2, p_out)
 cdiff.loadFile()
 cdiff.compareCol()
-cdiff.diffValueInCol("DB_name", ["name_original", "ID", "SMILES", "SMILES_cleaned", "Molweight_cleaned"])
+cdiff.diffValueInCol("X", ["name_original", "ID", "SMILES", "SMILES_cleaned", "Molweight_cleaned", "ID_raw"])
 
 
 

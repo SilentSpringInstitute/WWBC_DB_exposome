@@ -27,17 +27,19 @@ Select using criteria from the spreadsheet
 
 # 1. Percent field blank is </=50% n = 1730
 FBlim_nurse_sum <- Nurse_sum%>%
-  filter(percent_FB<= 50)
+  filter(percent_FB <= 50)
 
 
 # Calculate the summary stats to filter on later
-FBlim_nurse_sum2 <- FBlim_nurse_sum %>%
+FBlim_nurse_sum <- FBlim_nurse_sum %>%
   mutate(cvNvOW = cv_N/cv_OW, 
          sd_avg_N = mean(sd_N), 
          sdN_GE_sdavg = ifelse(sd_N>=sd_avg_N, 1, 0), 
          Drug_UCSF_cond = ifelse(Drug_UCSF_PXYS =="1", 1, 0), 
-         ERactive_AUC_cond = ifelse(ERactive_ER_AUC >= 0.01, 1, 0), 
-         ERactiveAUC_LD0 = ifelse(ERactive_ER_AUC==0, 1, 0))
+         DF_high_N = ifelse(DF_high_N =="1", 1, 0),
+         higher_intensity_N = ifelse(higher_intensity_N =="1", 1, 0),
+         exposurepred_bin = ifelse(exposurepred_bin =="1", 1, 0),
+         ERactive_AUC_cond = ifelse(ERactive_ER_AUC >= 0.01, 1, 0)) 
 
 table(FBlim_nurse_sum$ERactive_ER_AUC>=0.01)
 table(FBlim_nurse_sum$ERactive_AUC_cond)
@@ -50,7 +52,7 @@ table(FBlim_nurse_sum$ERactive_AUC_cond)
 
 # 2. Intensity OR detection frequency is higher in Nurses OR the CV is greater in Nurses than OW OR sd in nurses is greater than average SD in nurses. 
 lim_nurse_sum <- FBlim_nurse_sum %>%
-  filter(higher_intensity_N==1 |DF_high_N==1|cvNvOW>=1.5|sdN_GE_sdavg)
+  filter(higher_intensity_N==1 |DF_high_N==1|cvNvOW>=1.5|sdN_GE_sdavg == 1)
   # mutate(path_int_df = ifelse(higher_intensity_N==1|DF_high_N ==1, 1, 0), 
   #        path_cv = ifelse(cvNvOW >=1.5, 1, 0), 
   #        path_sd = sdN_GE_sdavg)
@@ -59,17 +61,27 @@ lim_nurse_sum <- FBlim_nurse_sum %>%
 #calculate the chemicals of interest with all the criteria that overlap between intensity, DF, CV and SD difference. Then find chemicals of itnerest with ER active, and exposure pred for each group. 
 lim_nurse_sum <- lim_nurse_sum %>%
   rowwise(featureid)%>%
-  mutate(of_interest_all = sum(c(Drug_UCSF_cond, E2Up_bin, P4Up_bin, PFAS, FRs, Disinfectant, nitroPAH_bin, pellizzari_bin, phthalate, MC, MGDev), na.rm = TRUE), 
+  mutate(of_interest_all = sum(c(Drug_UCSF_cond, E2Up_bin, P4Up_bin, PFAS, FRs, Disinfectant, nitroPAH_bin, pellizzari_bin, phthalate, MC, MGDev, ERactive_AUC_cond), na.rm = TRUE), 
          of_interest_int_cv = ifelse(higher_intensity_N==1|DF_high_N==1|cvNvOW>=1.5, sum(c(ERactive_AUC_cond), na.rm = TRUE),0), #if intensity or DF or CV is greater in Nurses than OW. 
-         of_int_sd = ifelse(sdN_GE_sdavg==1, sum(c(ERactiveAUC_LD0, exposurepred_bin), na.rm = TRUE), 0), #if the SD in nurses is higher than average
-         of_interest_sum = sum(c(of_interest_all, of_interest_int_cv, of_int_sd)), 
+         of_int_all = ifelse(of_interest_all >= 1 , 1,0),
+         of_int_all = ifelse(sum(of_int_all, of_interest_int_cv) == 2, 1, 0),
+         of_int_sd = ifelse(sdN_GE_sdavg==1, sum(c(exposurepred_bin), na.rm = TRUE), 0), #if the SD in nurses is higher than average
+         of_interest_sum = sum(c(of_int_all, of_int_sd)), 
          of_interest_cat = ifelse(of_interest_sum>=1, 1, 0)) #sum the columns of interest to combine
 
 
 table(lim_nurse_sum$of_interest_cat)
 #sum the two of interest columns. 
 
+#write.csv(lim_nurse_sum, "~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/2021Fragmentation list/20210721List_matche_filtered_for_Frag_Nurse_NEG.csv")
 write.csv(lim_nurse_sum, "../../data/result_NTA_tofilterforseg/list_filtered_jessica.csv")
+
+
+# without duplicate
+d_without_duplicate = lim_nurse_sum[which(lim_nurse_sum$of_interest_cat == 1),]
+
+write.csv(d_without_duplicate, "../../data/result_NTA_tofilterforseg/list_filtered_jessica_dup.csv")
+
 
 ```
 

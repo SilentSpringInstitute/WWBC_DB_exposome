@@ -5,15 +5,14 @@ from rdkit import Chem
 from copy import deepcopy
 from re import search
 
-import toolbox
+from toolbox import toolbox, pathFolder
 import CompDesc
-import pathFolder
-import smi2name
-import Biotransformer
-import prepSMILES
+from .smi2name import *
+from .Biotransformer import Biotransformer
+from .prepSMILES import *
 
 
-class WWWBC_database:
+class WWBC_database:
     def __init__(self, p_database, minMW, maxMW, lipinski_violation, list_chemicals_metabolite, pr_out, name_DB = ""):
 
         self.p_database = p_database
