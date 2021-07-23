@@ -1,4 +1,5 @@
 from os import path
+from prepForFrag import prepForFrag
 from WWBC_database import WWBC_database, matchChemicals
 from toolbox import pathFolder
 from filterAnnotation import filterAnnotation
@@ -15,10 +16,10 @@ PR_RESULTS = pathFolder.createFolder(PR_ROOT + "results/")
 ###################
 # may need to be place as in input file
 
-minMW = 100
-maxMW = 1000
-lipinski_violation = 3
-list_chemicals_metabolite = ["Drug_UCSF_PXYS", "Drug_most comon and haz", "Disinfectant", "FRs", "PFAS", "MC", "MGDev", "ERactive_bin", "E2Up_bin", "P4Up_bin", "pesticidemammarytumors_bin", "nitroPAH_bin", "pellizzari_bin", "phthalate"]
+#minMW = 100
+#maxMW = 1000
+#lipinski_violation = 3
+#list_chemicals_metabolite = ["Drug_UCSF_PXYS", "Drug_most comon and haz", "Disinfectant", "FRs", "PFAS", "MC", "MGDev", "ERactive_bin", "E2Up_bin", "P4Up_bin", "pesticidemammarytumors_bin", "nitroPAH_bin", "pellizzari_bin", "phthalate"]
 
 
 #  RUN - prepare database  #
@@ -27,20 +28,56 @@ list_chemicals_metabolite = ["Drug_UCSF_PXYS", "Drug_most comon and haz", "Disin
 #c_db.main()
 
 
+# PREP FOR FRAGMENTATION #
+##########################
+
 # Filter anotation #
 ####################
 
-p_filter = PR_DATA + "result_NTA_tofilterforseg/filter_criteria.txt"
-p_matched_neg = PR_DATA + "result_NTA_tofilterforseg/List_matched_no_filter_neg_FB_07.21.csv"
+## nurse ##
+# pos
+p_nurse_matched_pos = PR_DATA + "result_NTA_tofilter/List_matched_no_filter_pos_N_FB_07.21_rar.csv"
+
+# neg
+p_nurse_matched_neg = PR_DATA + "result_NTA_tofilter/List_matched_no_filter_neg_FB_07.21.csv"
+
+## FF ##
+# neg
+p_ff_matched_neg = PR_DATA + "result_NTA_tofilter/20210716Neg_features_FF_limited.csv"
+
+#pos
+p_ff_matched_pos = PR_DATA + "result_NTA_tofilter/20210716Neg_features_FF_limited.csv"
+
+##
+# filter setting for analysis
+p_filter = PR_DATA + "result_NTA_tofilter/filter_criteria.txt"
+
+
+pr_out = pathFolder.createFolder(PR_RESULTS + "forFrag/")
+l_p_annotation = [p_nurse_matched_neg, p_nurse_matched_pos, p_ff_matched_neg, p_ff_matched_pos]
+l_p_annotation = [p_nurse_matched_neg, p_nurse_matched_pos]#, p_ff_matched_neg, p_ff_matched_pos]
+
+c_prepForFrag = prepForFrag.prepForFrag(l_p_annotation, pr_out)
+c_prepForFrag.filteredAnnotation(p_filter)
+stophere
+
+
+
+
+
+## nurse 
+# neg
+p_nurse_matched_neg = PR_DATA + "result_NTA_tofilter/List_matched_no_filter_neg_FB_07.21.csv"
 pr_out = pathFolder.createFolder(PR_RESULTS + "filter_annotation/")
 
-c_filteria = filterAnnotation.filterAnnotation(p_matched_neg, p_filter, pr_out)
+c_filteria = filterAnnotation.filterAnnotation(p_nurse_matched_neg, p_filter, pr_out)
 c_filteria.loadCriteria()
-c_filteria.filterByCriteria()
-
-from checkPoint import checkTable
+c_filteria.filterByCriteriaA()
+c_filteria.removeDuplicateBasedOnCriteriaD()
 
 STOPHEREINMAIN
+from checkPoint import checkTable
+
 # Extract substructure from matches #
 #####################################
 pr_out = pathFolder.createFolder(PR_RESULTS + "match_chem/")

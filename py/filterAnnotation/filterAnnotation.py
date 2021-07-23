@@ -11,8 +11,8 @@ class filterAnnotation:
 
         self.p_matched = p_matched
         self.p_filter_criteria = p_filter_criteria
+        self.name_out = p_matched.split("/")[-1][0:-4]
         self.pr_out = pr_out
-
 
     def loadCriteria(self):
 
@@ -29,22 +29,27 @@ class filterAnnotation:
         
         self.d_criteria = d_filteria
 
-
-    def filterByCriteria(self):
+    def filterByCriteriaA(self):
 
         
         self.d_prefilter = toolbox.loadMatrix(self.p_matched, sep = ",")
+        self.d_filtered = deepcopy(self.d_prefilter)
         self.l_colname = list(list(self.d_prefilter.values())[0].keys())
 
 
         l_filter_by_criteria = []
         for criteria_filteria in self.d_criteria.keys():
 
+            # only take A and M criteria
+            if not search("^CriteriaA", criteria_filteria) and not search("^CriteriaM", criteria_filteria):
+                continue
+
             # define list to work on 
-            self.l_work = list(self.d_prefilter.keys())
+            self.l_work = list(self.d_filtered.keys())
             l_criteria = self.d_criteria[criteria_filteria].split(" AND ")
-            print(l_criteria)
-            
+            print(criteria_filteria, l_criteria)
+
+
             l_l_and = []
             for criterion in l_criteria:
                 l_instances = criterion.split(" OR ")
@@ -80,9 +85,10 @@ class filterAnnotation:
                     l_chem = list(set(l_l_and[0]).intersection(*l_l_and))
                 
                 # reduce the matrix
-                for chem in list(self.d_prefilter.keys()):
+                l_ID_filtered = list(self.d_filtered.keys())
+                for chem in l_ID_filtered:
                     if not chem in l_chem:
-                        del self.d_prefilter[chem]
+                        del self.d_filtered[chem]
 
             else:
                 if len(l_l_and) == 1:
@@ -91,11 +97,6 @@ class filterAnnotation:
                 else:
                     l_filter_by_criteria.append(list(set(l_l_and[0]).intersection(*l_l_and)))
         
-            
-
-
-
-
         # union criteria
         print([len(l) for l in l_filter_by_criteria])
         #print(l_filter_by_criteria)
@@ -106,19 +107,20 @@ class filterAnnotation:
             l_filter_all_criteria = list(set().union(*l_filter_by_criteria))
 
 
-
-
-        p_filout = self.pr_out + "filtered_annotation.csv"
+        # write file out 
+        p_filout = self.pr_out + self.name_out + "_filtered.csv"
         filout = open(p_filout, "w")
-
         filout.write("%s\n"%("\t".join(self.l_colname)))
         for ID in l_filter_all_criteria:
-            filout.write("%s\t%s\n"%(ID, "\t".join(["%s"%(self.d_prefilter[ID][col]) for col in self.l_colname[1:]])))
+            filout.write("%s\t%s\n"%(ID, "\t".join(["%s"%(self.d_filtered[ID][col]) for col in self.l_colname[1:]])))
         filout.close()
 
-
-
-    
+        # define a new matrix table
+        l_ID_filtered = list(self.d_filtered.keys())
+        for ID in l_ID_filtered:
+            if not ID in l_filter_all_criteria:
+                del self.d_filtered[ID]
+        
     def filterTable(self, name_col, condition, value):
 
         # test first if name_col is in the table
@@ -138,13 +140,13 @@ class filterAnnotation:
         while i < imax:
             if condition == "==":
                 if not name_col in self.l_colname and "l_function_col_div" in locals():
-                    if float(self.d_prefilter[l_work[i]][l_function_col_div[0]])/float(self.d_prefilter[l_work[i]][l_function_col_div[1]]) != float(value):
+                    if float(self.d_filtered[l_work[i]][l_function_col_div[0]])/float(self.d_filtered[l_work[i]][l_function_col_div[1]]) != float(value):
                         del l_work[i]
                         imax = imax - 1
                         continue                    
                 
                 else:
-                    if self.d_prefilter[l_work[i]][name_col] != value:
+                    if self.d_filtered[l_work[i]][name_col] != value:
                         del l_work[i]
                         imax = imax - 1
                         continue
@@ -155,7 +157,7 @@ class filterAnnotation:
                 
                 # need to check if equation
                 if "l_function_col_div" in locals():
-                    try:value_table = float(self.d_prefilter[l_work[i]][l_function_col_div[0]])/float(self.d_prefilter[l_work[i]][l_function_col_div[1]])
+                    try:value_table = float(self.d_filtered[l_work[i]][l_function_col_div[0]])/float(self.d_filtered[l_work[i]][l_function_col_div[1]])
                     except:
                         del l_work[i]
                         imax = imax - 1
@@ -163,7 +165,7 @@ class filterAnnotation:
                     #print(value_table, i)
                 else:
                     try:
-                        value_table = float(self.d_prefilter[l_work[i]][name_col])
+                        value_table = float(self.d_filtered[l_work[i]][name_col])
                     except:
                         del l_work[i]
                         imax = imax - 1
@@ -198,12 +200,11 @@ class filterAnnotation:
         
         return l_work
 
-
     def computeAVG(self, col_name):
 
         l_val = []
-        for chem in self.d_prefilter.keys():
-            try: l_val.append(float(self.d_prefilter[chem][col_name]))
+        for chem in self.d_filtered.keys():
+            try: l_val.append(float(self.d_filtered[chem][col_name]))
             except: pass
         
         return numpy.average(l_val)
