@@ -122,18 +122,21 @@ class filterAnnotation:
                 del self.d_filtered[ID]
         
     def filterTable(self, name_col, condition, value):
-
+        """
+        Filter using a column name and a value
+        If col is not included in the table just return the all list of chemicals
+        """
         # test first if name_col is in the table
+        l_work = deepcopy(self.l_work)
+        
         if search("/", name_col):
             l_function_col_div = name_col.split("/")
                 
         elif not name_col in self.l_colname:
             print("ERROR colname: %s"%(name_col))
-            return
+            return l_work
         
-
-
-        l_work = deepcopy(self.l_work)
+        
 
         i = 0
         imax = len(l_work)

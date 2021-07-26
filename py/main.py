@@ -43,27 +43,32 @@ p_nurse_matched_neg = PR_DATA + "result_NTA_tofilter/List_matched_no_filter_neg_
 
 ## FF ##
 # neg
-p_ff_matched_neg = PR_DATA + "result_NTA_tofilter/20210716Neg_features_FF_limited.csv"
+p_ff_matched_neg = PR_DATA + "result_NTA_tofilter/20210716Neg_features_FF_limited_filtered.csv"
 
 #pos
-p_ff_matched_pos = PR_DATA + "result_NTA_tofilter/20210716Neg_features_FF_limited.csv"
+p_ff_matched_pos = PR_DATA + "result_NTA_tofilter/20210716POS_features_FF_limited_filtered.csv"
 
 ##
 # filter setting for analysis
 p_filter = PR_DATA + "result_NTA_tofilter/filter_criteria.txt"
 
+## NEG mode
+pr_out = pathFolder.createFolder(PR_RESULTS + "forFragNeg/")
+l_p_annotation = [p_nurse_matched_neg, p_ff_matched_neg]#, p_ff_matched_neg, p_ff_matched_pos]
 
-pr_out = pathFolder.createFolder(PR_RESULTS + "forFrag/")
-l_p_annotation = [p_nurse_matched_neg, p_nurse_matched_pos, p_ff_matched_neg, p_ff_matched_pos]
-l_p_annotation = [p_nurse_matched_neg, p_nurse_matched_pos]#, p_ff_matched_neg, p_ff_matched_pos]
+c_prepForFrag = prepForFrag.prepForFrag(l_p_annotation, p_filter, "NEG", pr_out)
+c_prepForFrag.filteredAnnotation()
+c_prepForFrag.mergeAnnotationForFrag()
 
-c_prepForFrag = prepForFrag.prepForFrag(l_p_annotation, pr_out)
-c_prepForFrag.filteredAnnotation(p_filter)
-stophere
+# POS mode
+pr_out = pathFolder.createFolder(PR_RESULTS + "forFragPos/")
+l_p_annotation = [p_nurse_matched_pos, p_ff_matched_pos]#, p_ff_matched_neg, p_ff_matched_pos]
 
+c_prepForFrag = prepForFrag.prepForFrag(l_p_annotation, p_filter, "POS", pr_out)
+c_prepForFrag.filteredAnnotation()
+c_prepForFrag.mergeAnnotationForFrag()
 
-
-
+stopHERE
 
 ## nurse 
 # neg
