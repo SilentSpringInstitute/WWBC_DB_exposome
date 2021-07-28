@@ -139,10 +139,19 @@ pfile2 = "/mnt/c/Users/AlexandreBorrel/research/SSI/exposome/data/result_NTA_tof
 pfile1 = "/mnt/c/Users/AlexandreBorrel/research/SSI/exposome/results/filter_annotation/filtered_annotation.csv"
 p_out = "./../../results/diff_table/log_diff_annotation.txt"
 
+
+# check after all filtering
+pfile2 = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/result_NTA/20210723_FF_Nurse_FragList_NEG.csv"
+pfile1 = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/results/forFragNeg/NEG_filter_features_3MW_30deltaRT.csv"
+p_out = "./../../results/diff_table/log_diff_annotation.txt"
+
+
 cdiff = checkTable(pfile1, pfile2, p_out)
 cdiff.loadFile()
 cdiff.compareCol()
-cdiff.diffValueInCol("X", ["name_original", "ID", "SMILES", "SMILES_cleaned", "Molweight_cleaned", "ID_raw"])
+cdiff.diffValueInCol("mz", ["name_original", "ID", "SMILES", "SMILES_cleaned", "Molweight_cleaned", "ID_raw"])
+
+
 
 
 

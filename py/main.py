@@ -34,9 +34,13 @@ PR_RESULTS = pathFolder.createFolder(PR_ROOT + "results/")
 # Filter anotation #
 ####################
 
+#from checkPoint import checkTable
+#stophere
+
 ## nurse ##
 # pos
-p_nurse_matched_pos = PR_DATA + "result_NTA_tofilter/List_matched_no_filter_pos_N_FB_07.21_rar.csv"
+#p_nurse_matched_pos = PR_DATA + "result_NTA_tofilter/List_matched_no_filter_pos_N_FB_07.21_rar.csv"
+p_nurse_matched_pos = PR_DATA + "result_NTA_tofilter/20210722List_matched_filtered_for_Frag_Nurse_POS.csv"
 
 # neg
 p_nurse_matched_neg = PR_DATA + "result_NTA_tofilter/List_matched_no_filter_neg_FB_07.21.csv"

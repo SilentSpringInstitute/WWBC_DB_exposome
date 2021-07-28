@@ -83,7 +83,7 @@ class prepForFrag:
                 MW = str(round(float(self.d_d_filtered_annotation[k_filtered][ID]["mz"]), mw_digits))
                 if not MW in list(d_MW.keys()):
                     d_MW[MW] = []
-                d_add = {"mz":[self.d_d_filtered_annotation[k_filtered][ID]["mz"]], "featureid":[self.d_d_filtered_annotation[k_filtered][ID]["featureid"]], "time":[self.d_d_filtered_annotation[k_filtered][ID]["time"]], "formula_cleaned": [self.d_d_filtered_annotation[k_filtered][ID]["formula_cleaned"]], "DB_name": [self.d_d_filtered_annotation[k_filtered][ID]["DB_name"]], "ESI":  [self.d_d_filtered_annotation[k_filtered][ID]["ESI"]]}
+                d_add = {"mz":[self.d_d_filtered_annotation[k_filtered][ID]["mz"]], "featureid":[self.d_d_filtered_annotation[k_filtered][ID]["featureid"]], "time":[self.d_d_filtered_annotation[k_filtered][ID]["time"]], "formula_cleaned": [self.d_d_filtered_annotation[k_filtered][ID]["formula_cleaned"]], "DB_name": [self.d_d_filtered_annotation[k_filtered][ID]["DB_name"]], "name":[self.d_d_filtered_annotation[k_filtered][ID]["name_original"]], "ESI":  [self.d_d_filtered_annotation[k_filtered][ID]["ESI"]]}
                 d_MW[MW].append(d_add)
 
 
@@ -115,7 +115,7 @@ class prepForFrag:
                 print(MW, " DBname: ", ",".join([str(d_MW_t["DB_name"]) for d_MW_t in d_MW[MW]]))
 
         # write results
-        p_filout = self.pr_out + "%s_filter_features_%sMW_%sdeltaRT.csv"%(self.name_file, mw_digits, rt_delta)
+        p_filout = self.pr_out + "%s_filter_features_%sMW_%sdeltaRT_NurseFFCombined.csv"%(self.name_file, mw_digits, rt_delta)
         filout = open(p_filout, "w")
         l_col = list(d_MW[list(d_MW.keys())[0]][0].keys())
         filout.write("MW\tRT\t" + "\t".join(l_col) + "\n")
