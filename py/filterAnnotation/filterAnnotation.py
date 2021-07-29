@@ -36,7 +36,6 @@ class filterAnnotation:
         self.d_filtered = deepcopy(self.d_prefilter)
         self.l_colname = list(list(self.d_prefilter.values())[0].keys())
 
-
         l_filter_by_criteria = []
         for criteria_filteria in self.d_criteria.keys():
 
@@ -62,7 +61,6 @@ class filterAnnotation:
                 
                     elif "AVG" in l_elem:
                         value_avg = self.computeAVG(l_elem[l_elem.index("AVG") + 1])
-                        print(value_avg)
                         del l_elem[l_elem.index("AVG") + 1]
                         l_elem[l_elem.index("AVG")] = value_avg 
                         if len(l_elem) == 3:
@@ -78,17 +76,19 @@ class filterAnnotation:
 
 
             # if it is a main criteria apply directly to matrix
-            if search("CriteriaM", criteria_filteria):
+            if search("^CriteriaM", criteria_filteria):
                 if len(l_l_and) == 1:
                     l_chem = l_l_and[0] 
                 else:
                     l_chem = list(set(l_l_and[0]).intersection(*l_l_and))
                 
                 # reduce the matrix
+                #print("Size filtered:,", len(list(self.d_filtered.keys())))
                 l_ID_filtered = list(self.d_filtered.keys())
                 for chem in l_ID_filtered:
                     if not chem in l_chem:
                         del self.d_filtered[chem]
+                #print("Size after M criteria filtered:,", len(list(self.d_filtered.keys())))
 
             else:
                 if len(l_l_and) == 1:
@@ -98,8 +98,6 @@ class filterAnnotation:
                     l_filter_by_criteria.append(list(set(l_l_and[0]).intersection(*l_l_and)))
         
         # union criteria
-        print([len(l) for l in l_filter_by_criteria])
-        #print(l_filter_by_criteria)
         
         if len(l_filter_by_criteria) == 1:
             l_filter_all_criteria = l_filter_by_criteria[0]     
@@ -178,24 +176,29 @@ class filterAnnotation:
                 if condition == ">=":
                     if value_table < value_f:
                         del l_work[i]
+                        
                         imax = imax - 1
                         continue
                 
                 elif condition == "<=": 
                     if value_table > value_f:
+                        
                         del l_work[i]
+
                         imax = imax - 1
                         continue
 
                 
                 elif condition == ">":
                     if value_table <= value_f:
+                        
                         del l_work[i]
                         imax = imax - 1
                         continue
                 
                 elif condition == "<": 
                     if value_table >= value_f:
+                        
                         del l_work[i]
                         imax = imax - 1
                         continue

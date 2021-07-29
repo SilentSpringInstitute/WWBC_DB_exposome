@@ -21,6 +21,7 @@ class prepForFrag:
         self.c_filteria.loadCriteria()
         for p_annotated_file in self.l_p_annotated_filtered_files:
             self.c_filteria.p_matched = p_annotated_file
+            self.c_filteria.name_out = p_annotated_file.split("/")[-1][0:-4]
             self.c_filteria.filterByCriteriaA() # apply criteria on the mapping
             d_d_filtered_annotation[p_annotated_file.split("/")[-1][0:-4]] = self.c_filteria.d_filtered
         self.d_d_filtered_annotation = d_d_filtered_annotation   
@@ -126,6 +127,3 @@ class prepForFrag:
                 filout.write("%s\t%s\t%s\n"%(MW, d_RT["time"][0], "\t".join([';'.join(d_RT[k]) for k in l_col])))
         filout.close()
 
-
-
-        return 
