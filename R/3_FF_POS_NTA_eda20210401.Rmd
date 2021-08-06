@@ -1,0 +1,1735 @@
+---
+title: 'FF_framentation_postive. '
+author: "Jessica Trowbridge"
+date: "6/4/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+library(dplyr)
+library(reshape2)
+
+library(ggplot2)
+
+library(tidyverse)
+library(broom)
+library(perm)
+library(tidyr)
+library(cvcqv)
+library(EnvStats)
+
+```
+
+## Selecting chemical features for fragmentation in Positive Mode
+
+This file cleans and selects features for fragmentation. The data imported here has been peak corrected with xcms and then pre-processed using XMSannotator. The resulting .csv file is the relative peak intensities and features identified through matching to the WWBC library. In this document I will ~~apply a method blank correction criteria~~, and identify chemicals of interest for fragmentation. 
+
+Path 1—Firefighter related?
+
+A.	Flag if FB is <50% of Visit 1 average
+B.	Compound detected in at least 3 participants in visit 1, AND
+C.	Different peak area (higher or lower) in visit 1 versus visit 2 or 3. (boxplot of feature by visit and MB), OR
+D.	Different detection frequency (higher or lower) in visit 1 versus visit 2 or 3 (but detected in at least 3 participants)
+
+Path 2—Other novel chemical of interest?
+
+A.	Feature detected in at least 3 participants; flag
+B.	Flag feature if FB is <50% of average visit 1 
+C.	Matches to BC-relevant chemicals (eg. give score = 1 if increases E2 and score = 1 if increases P4up, MC, ER active, add up for a BC score) OR
+D.	Matches to PFAS, & FR listed in WWBD OR
+E.	UV protectors (benzophenone-3, oxybenzone, etc.  look at BCPP website)
+F.	Exposure predicted as confidence check
+
+later: 
+
+a)	not been measured in large biomonitoring studies. 
+b)	Exposure predicted
+
+
+```{r echo= FALSE}
+getwd()
+#read in data. 
+pos_xset <- read.csv("~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/FF_non-targeted/ESI_pos/pre-processingPOS/20210423POS_xset.csv", stringsAsFactors = FALSE, header= TRUE) 
+pos_xset <- pos_xset[ , c(2,5,10:137,138:141)] #keep mz, rt, individual intensities, DIWB, (not MB)
+# colnames(pos_xset)
+dtsc<-read.csv("data_files_csv/FF_id_visit.csv", header = T)
+
+
+###Extract FF id and visit from dtsc$id
+dtsc$dtsc_id<-substr(dtsc$id,1,7)
+dtsc$FF_id<-substr(dtsc$id,9,12)
+dtsc$visit<-substr(dtsc$id,14,20)
+dtsc$dtsc_run <- substr(dtsc$id, 30,33)
+
+#make a sample ID to match features data. 
+dtsc$dtsc_fid <- as.character(paste(dtsc$dtsc_id,dtsc$dtsc_run,sep = ".")) 
+
+
+#Participants 216 and 227 have more than 3 sample collections. They had repeat fires and were labeled as fires 4,5,6. Renumber with 216.2 and 227.2 and relable sample collections. 
+#participant 216 did 2 complete sets. 
+#participant 227 had a second fire before sample 3. So renumber sample 3 to 1 and so forth. 
+
+#Renumber the 2 participants who gave samples for 2 fires and assign the visits 1,2,3 so they are included in the analysis. 
+dtsc <- dtsc%>%
+  mutate(new_visit= ifelse(FF_id == "F227" & visit == "Visit 3", "Visit 1", 
+                ifelse(FF_id =="F227" & visit == "Visit 4", "Visit 2", 
+                ifelse(FF_id =="F227" &visit == "Visit 5", "Visit 3", 
+                ifelse( FF_id =="F216" & visit =="Visit 4", "Visit 1", 
+         ifelse(FF_id =="F216" & visit == "Visit 5", "Visit 2", 
+         ifelse(FF_id =="F216" & visit == "Visit 6", "Visit 3", visit)))))), 
+         newFF_id = ifelse(FF_id == "F227" & visit == "Visit 3", "F227.2", 
+                           ifelse(FF_id == "F227" & visit == "Visit 4", "F227.2", 
+                           ifelse(FF_id == "F227" & visit == "Visit 5", "F227.2",
+                           ifelse(FF_id == "F216" & visit == "Visit 4", "F216.2",
+                           ifelse(FF_id == "F216" & visit == "Visit 5", "F216.2",
+                           ifelse(FF_id == "F216" & visit == "Visit 6", "F216.2", FF_id)))))))
+         
+         
+
+# ## Before Matching: 
+# * exclude if missing is >50% for visit 1
+# * calculate DF of each visit
+# * PCA to check for batch effects. 
+# 
+# 
+# ## After matching with xmsannotator file: 
+# * calculate a DF for each group/visit
+# ** make long-form data with intensity and filenames (sample id?)
+# #first
+# 
+# calculate DF for each feature
+# mean intensity by group and SD and CV
+# filter out endogenous molecules: CV<30 between the 3 time points becuase not much variation. 
+# When comparing between time-points, log transform. 
+# 
+# 
+# 
+# The value under each ID is the relative intensity of each feature. 
+# - calculate the CV for the two replicate samples. If large CV (>50) then the signal is not stable and can make NA or 0. This is the technical variation (versus the biological variation which would be the CV across the 3 samples)
+# - combine the two runs with average
+# - if the relative intensity is below 1000 then is noise (can convert to 0? or NA? or leave as is, but limit the calculations to values above 1000)
+# - then can calculate the detection frequency with the cut off of 1000.  
+# 
+
+
+
+```
+
+
+```{r echo= FALSE}
+# colnames(pos_xset)
+#make data long-format to calculate summary statistics and groups
+new_df_long <- gather(pos_xset, "sample_id", "intensity", BD01346.r001:MB2 )
+
+
+long_df <- merge(new_df_long, dtsc, by.x = "sample_id", by.y = "dtsc_fid", all.x = TRUE)  #do not drop the Blank and QAQC variables, they do not have a study ID will need to make a new variable with group: visit 1,2,3, MB
+
+
+
+#extract the type of sample from sample id: DI= dionized water, MB= methanol blank
+long_df$type<-substr(long_df$sample_id,1,2)
+
+
+#make a new variable that includes the blank samples: field blank, Deionized water, and method blank
+## will not use MB
+
+long_df2 <- long_df%>%
+  mutate(new_visit_blk = ifelse(newFF_id == "F197"|newFF_id== "F223"|newFF_id== "F231"|newFF_id== "F232", "FB", new_visit),
+         new_visit_blk = ifelse(is.na(new_visit) & type == "DI", "DIWB", new_visit_blk),
+         new_visit_blk = ifelse(is.na(new_visit) & type =="MB", "mb", new_visit_blk),
+         group= factor(new_visit_blk))
+  
+table(long_df2$new_visit_blk)
+
+# Do not remove the field blank samples.
+# long_df2 <- long_df2 %>%
+#   filter(newFF_id != "F197"& newFF_id != "F223" & newFF_id != "F231"& newFF_id != "F232")  
+
+# long_df<-melt(df, id.vars = c("mz","time","count_v1","DF_v1","count_v3","DF_v3","count_blank","DF_blank","DF_diff"))
+# names(long_df2)[names(long_df2)=="sample_id"]<-"filename"
+# names(long_df2)[names(long_df2)=="rel_conc"]<-"intensity"
+
+
+
+```
+
+
+
+
+
+```{r, echo = FALSE}
+## Calculate the CV, mean, sd for each feature over for each visit and mb
+## not log_transformed. Vincent suggests use log2
+
+# keep_mz <- cv_visit%>%
+#  filter(coef_var>30) #206232 samples have cv>30; if CV<30 not much variation 
+long_df2$intensity[long_df2$intensity==0]<-NA
+
+# long_df2$intensity[is.na(long_df2$intensity)]<-0
+
+
+
+#calculate summary statistics by for each feature. 
+v1vs3_df <- long_df2 %>%
+  group_by(mz, rt)%>%
+  mutate(intensity1 = ifelse(is.na(intensity),0, intensity),
+         log2_intensity = log2(intensity))%>%
+ summarize( # per_miss_v1 = (sum(is.na(intensity[new_visit_blk=="Visit 1"])/length(is.na(intensity[new_visit_blk=="Visit 1"]))))*100,
+            det_count_v1 = sum(!is.na(intensity[new_visit_blk == "Visit 1"])),
+            det_count_v2 = sum(!is.na(intensity[new_visit_blk== "Visit 2"])),
+            det_count_v3 = sum(!is.na(intensity[new_visit_blk == "Visit 3"])),
+            # det_count_mb = sum(!is.na(intensity[new_visit_blk == "mb"])),
+            det_count_FB = sum(!is.na(intensity[new_visit_blk == "FB"])),
+            df_v1 = (det_count_v1/40)*100,
+            df_v2 = (det_count_v2/38)*100, 
+            df_v3 = (det_count_v3/38)*100,
+            # df_mb = (det_count_mb/4)*100,
+            #VISIT1
+            mean_visit1 = mean(intensity1[new_visit_blk =="Visit 1"], na.rm = TRUE),
+            log_mean_v1= mean(log2(intensity[new_visit_blk=="Visit 1"]), na.rm = TRUE),
+            sd_visit1 = sd(intensity1[new_visit_blk =="Visit 1"], na.rm = TRUE),
+            median_v1 = median(intensity1[new_visit_blk =="Visit 1"], na.rm = TRUE),
+            gm_visit1 = geoMean(intensity[new_visit_blk =="Visit 1"], na.rm = TRUE),
+            gsd_visit1 = geoSD(intensity[new_visit_blk =="Visit 1"], na.rm = TRUE),
+            cv_visit1 = (sd(intensity1[new_visit_blk == "Visit 1"],na.rm = TRUE)/mean(intensity1[new_visit_blk =="Visit 1"],na.rm = TRUE))*100,
+            #VISIT2
+            mean_visit2 = mean(intensity1[new_visit_blk =="Visit 2"], na.rm = TRUE),
+            median_v2 = median(intensity1[new_visit_blk =="Visit 2"], na.rm = TRUE),
+            sd_visit2 = sd(intensity1[new_visit_blk =="Visit 2"], na.rm = TRUE),
+            gm_visit2 = geoMean(intensity[new_visit_blk =="Visit 2"], na.rm = TRUE),
+            gsd_visit2 = geoSD(intensity[new_visit_blk =="Visit 2"], na.rm = TRUE),
+            cv_visit2 =  sd(intensity1[new_visit_blk == "Visit 2"],na.rm = TRUE)/mean(intensity1[new_visit_blk =="Visit 2"],na.rm = TRUE)*100,
+            #VISIT 3
+            mean_visit3 = mean(intensity1[new_visit_blk =="Visit 3"], na.rm = TRUE),
+            sd_visit3 = sd(intensity1[new_visit_blk =="Visit 3"], na.rm = TRUE),
+            median_v3 = median(intensity1[new_visit_blk =="Visit 3"], na.rm = TRUE),
+            gm_visit3 = geoMean(intensity[new_visit_blk =="Visit 3"], na.rm = TRUE),
+            gsd_visit3 = geoSD(intensity[new_visit_blk =="Visit 3"], na.rm = TRUE),
+            cv_visit3 =  (sd(intensity1[new_visit_blk == "Visit 3"],na.rm = TRUE)/mean(intensity1[new_visit_blk =="Visit 3"],na.rm = TRUE))*100,
+            #ALLVISITS
+            mean_allvisit = mean(intensity1, na.rm = TRUE), 
+            gm_allvisit = geoMean(intensity, na.rm = TRUE),
+            gsd_allvisit = geoSD(intensity, na.rm = TRUE),
+            cv_allvisit = (sd(intensity1, na.rm = TRUE)/mean(intensity1, na.rm = TRUE))*100, 
+            # mean_MB = mean(intensity1[new_visit_blk == "mb"], na.rm = TRUE),
+            # sd_MB = sd(intensity1[new_visit_blk == "mb"], na.rm = TRUE),
+            # cv_MB = sd(intensity1[new_visit_blk == "mb"],na.rm = TRUE)/mean(intensity1[new_visit_blk =="mb"],na.rm = TRUE),
+            #FIELDBLANK
+            mean_FB = mean(intensity1[new_visit_blk=="FB"], na.rm = TRUE),
+            log_mean_FB= mean(log2(intensity[new_visit_blk=="FB"])),
+
+            mean_DIWB = mean(intensity1[new_visit_blk=="DIWB"], na.rm = TRUE),
+            PvalV1_v3 = wilcox.test(intensity1[group=="Visit 1"], intensity1[group=="Visit 3"],exact = F)$p.value, 
+            PvalV1_V2 = wilcox.test(intensity1[group=="Visit 1"], intensity1[group=="Visit 2"],exact = F)$p.value,
+           )
+
+         # sigp_score = ifelse(conc_p < 0.1, 1, 0)
+         #if TRUE then mean at time 1 is greater than mean at time 2. 
+  
+v1vs3_df <- v1vs3_df%>%
+  mutate(DFv1_min = ifelse(det_count_v1>=6 , 1, 0),
+         mean_FB = ifelse(mean_FB == "NaN",NA, mean_FB),
+         # log_mean_v1 = ifelse(log_mean_v1=="NaN", NA, mean_FB),
+         percent_FBvV1= (mean_FB/mean_visit1)*100,
+         logFBvV1 = (log_mean_FB/log_mean_v1)*100, 
+         meanv1_gt_v3 = ifelse(mean_visit1 > mean_visit3, 1, 0),
+         meanv1_gt_v2 = ifelse(mean_visit1 > mean_visit2, 1, 0),
+         geom_diff1v3 = ifelse(gm_visit1 > gm_visit3, 1, 0),
+         geom_diff1v2 = ifelse(gm_visit1 > gm_visit2, 1, 0),
+         # sigp_score = ifelse(conc_p < 0.1, 1, 0), 
+         # sig_diff_mean_v1_v3 = ifelse(sigp_score == 1 & v1_gt_v3 == 1, 1, 0 ),
+          #detected in at least 3 in V1
+         df1v3_difference = abs(df_v1 - df_v3),
+         df1v2_difference = abs(df_v1 - df_v2),
+         # dif10per2 = det_count_v2/ det_count_v1, 
+         # dif10per3 = det_count_v3/ det_count_v1,
+         # ave_int3 = mean_visit1/mean_visit3, 
+         # ave_int2 = mean_visit1/mean_visit2
+         )
+
+#make a feature Id with a combo of mz and rt. We will merge on this later
+v1vs3_df$mz<-round(v1vs3_df$mz,5)
+v1vs3_df$rt <- round(v1vs3_df$rt, 1)
+v1vs3_df$featureid<-as.character(paste(v1vs3_df$mz,v1vs3_df$rt,sep = "-"))
+
+# head(v1vs3_df$percent_FBvV1)
+
+head(cbind(v1vs3_df$percent_FBvV1, v1vs3_df$logFBvV1))
+
+
+```
+
+
+```{r, echo=FALSE}
+###Check for percent intensity in MB compared to Visit 1
+
+#exclude field blank intensity >50% compared to visit 1 intensity
+#exclude if DF for visit 1 is <20%
+
+
+
+
+######Exclude feature with cv<30%  Did not do this
+# df3<-filter(df2, cv_visit1>30 )
+
+
+
+
+```
+
+
+# merge with annotated chemical features/intensities and SSI database
+
+```{r, echo = FALSE, include=FALSE}
+
+
+#import gss data to merge with 
+annotation_pos <- read.csv(file = "~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/FF_non-targeted/ESI_pos/Pos_annotator_20210708/Stage5.csv")
+
+
+#make feature_id variable
+colnames(annotation_pos)[6] <- "rt"
+annotation_pos$mz<-round(annotation_pos$mz,5)
+annotation_pos$rt <- round(annotation_pos$rt, 1)
+annotation_pos$featureid<-as.character(paste(annotation_pos$mz,annotation_pos$rt,sep = "-"))
+
+#keep important variables
+annotation_pos<-annotation_pos[,c("featureid","chemical_ID","Confidence","score","MatchCategory","theoretical.mz","delta_ppm","Name","Formula","MonoisotopicMass","Adduct")]
+
+#rename make clear
+names(annotation_pos)[names(annotation_pos)=="chemical_ID"]<-"DB_name"
+names(annotation_pos)[names(annotation_pos)=="Name"]<-"Compound"
+
+#filter out those with a confidence score of 0. Keep any with confidence score 1 or more
+annotation_pos<-filter(annotation_pos, Confidence>0)
+
+
+###Merge with source and tox data
+#import SSI features database with tox data: 
+df2 <- v1vs3_df
+
+df3_pos <- merge(df2, annotation_pos, by= "featureid", all.x = TRUE)
+
+#count the number of matches between from annotation data
+df3_pos$Adduct<-as.character(df3_pos$Adduct) ##We can do it at the adduct type level  
+
+df3_pos[["Adduct"]][is.na(df3_pos[["Adduct"]])]<-"No match"
+
+#if you want to count how many matched at this level 
+# df3_pos %>%
+#   group_by(Adduct)%>%
+#   summarise(count=n_distinct(featureid)) 
+
+# df3_pos %>%
+#   group_by(Adduct)%>%
+#   summarise(count=n_distinct(DTXSID)
+
+
+#read in SSI_Database-- using the amended database with metabolites labeled, and the DTXSID and tox data from the parent compound
+ssi_databse <- read.csv(file = "~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/FF_non-targeted/Code/data_files_csv/2021.07.09ssi_db_withParentCompunds.csv")
+
+
+#merge with SSI tox database by Chemical ID
+df_annotation<-merge(annotation_pos, ssi_databse, by= "DB_name", all = TRUE)
+
+df4_pos <- merge(df2, df_annotation, by= "featureid", all.x = TRUE)
+
+# find the number of matches at this stage
+df4_pos$Adduct<-as.character(df4_pos$Adduct) ##We can do it at the adduct type level  
+
+df4_pos[["Adduct"]][is.na(df4_pos[["Adduct"]])]<-"No match"
+
+#number of distinct features
+df4_pos %>%
+  group_by(Adduct)%>%
+  summarise(count=n_distinct(featureid)) #matched 1043; not matched; 9719
+
+# number of distinct DTXSIDs 
+df4_pos %>%
+  group_by(Adduct)%>%
+  summarise(count=n_distinct(DTXSID)) #1357 unique DTXSIDs
+
+
+###Define priority chemicals to select
+#keep those that are a unique match? 
+df5_pos <- df4_pos%>% 
+  filter( Adduct == "M+H")
+
+
+# we did not do the following steps nor filter by MB
+#filtered by MB criteria AND significant difference in visit 1 vs v2 OR v3
+# df5_pos %>%
+#   group_by(Adduct)%>%
+#   summarise(count=n_distinct(featureid)) ###
+# 
+# df5_pos %>%
+#   group_by(Adduct)%>%
+#   summarise(count=n_distinct(DTXSID)) ##
+# 
+# 
+# df5_pos %>%
+#   filter(PvalV1_v3 <=0.1 | PvalV1_V2 <=0.1)%>%
+#   group_by(Adduct)%>%
+#   summarise(count=n_distinct(featureid)) ###121
+# 
+
+#Filtered by MB criteria AND DF in visit 1 greater than Visit 2 OR visit 3. 
+
+# df5_pos%>%
+#   filter(df1v2_difference >0 | df1v3_difference>0)%>%
+#   group_by(Adduct)%>%
+#   summarise(count=n_distinct(featureid)) ###127
+# 
+# df5_pos%>%
+#   filter(df1v2_difference >0 | df1v3_difference>0)%>%
+#   group_by(Adduct)%>%
+#   summarise(count=n_distinct(DTXSID)) ### 43 unique matches
+# 
+# 
+# df5_pos %>% 
+#   summarise(cv_mean= mean(cv_allvisit),
+#             cv_sd = sd(cv_allvisit),
+#             cv_min = min(cv_allvisit), 
+#             cv_max = max(cv_allvisit))
+
+# table((df5_pos$cv_allvisit>50))
+#Required criteria: present in at least 3 participants at time 1. 
+
+#filter by 
+# Confidence >= 1
+# diff_v1.3 ==TRUE
+# test <- full_df%>%
+#   filter(diff_v1.3 =="TRUE", 
+#          Confidence>0
+#          )
+# 
+
+```
+
+#make a variable with sums of MC chemicals
+```{r, include=FALSE }
+
+#if you need to make the variables numeric
+# df5_pos <- df5_pos %>%
+#   mutate(PFAS = ifelse(PFAS==1, 1, 0),
+#          FRs = ifelse(FRs==1, 1, 0),
+#          nitroPAH_bin = ifelse(nitroPAH_bin==1, 1, 0),
+#          exposurepred_bin = ifelse(exposurepred_bin==1, 1, 0),
+#          ERactive_bin = ifelse(ERactive_bin==1, 1, 0),
+#          E2Up_bin = ifelse(E2Up_bin==1, 1, 0),
+#          P4Up_bin = ifelse(P4Up_bin==1, 1, 0),
+#          MC = ifelse(MC==1, 1, 0),
+#          pesticidemammarytumors_bin = ifelse(pesticidemammarytumors_bin=="1", 1, 0))
+
+df5_pos$MC_sum <- rowSums(df5_pos[,c("ERactive_bin", "E2Up_bin","P4Up_bin", "MC", "pesticidemammarytumors_bin")],na.rm= TRUE)
+
+
+
+#Find the number of lim_df5_neg were sent for fragmentation
+#import list for fragmentation: 
+pos_frag <- read_csv("/Users/trowbridgej/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/2020Fragmentation list/list_DTXSID_fragmentation_nurses_FF_pos.csv")
+
+# small_merge <- merge(lim_df5_pos, pos_frag, by = "DTXSID") 
+#35 chemicals from the ESI+ were sent for fragmentation
+
+#merge the matches between fragmentation data and the limited suspect list
+confirmed_pos <- read.csv(file = "/Users/trowbridgej/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/FF_non-targeted/ESI_pos/20210513_confirmedfeaturesfrag_pos.csv")
+
+confirmed_dtxsid <- confirmed_pos$DTXSID[confirmed_pos$confirmed_match>=1] 
+confirmed_dtxsid
+
+#read the .csv file that we annotated in the meeting
+priority_df <- read_csv("data_files_csv/20210512Pos_features_FF_prioritized.csv")
+
+table(priority_df$`Of interest`)
+dtxsidof_interest <- priority_df$DTXSID[priority_df$`Of interest`>=1]
+
+
+# table(priority_df$`Of interest`)
+#make a new variable for if they were sent for fragmentation and if confirmed
+#make a var that is UCSF drug that we can filter on later 
+#create a new variable==1 if the chemical name includes "acrylate"
+
+df5_pos <- df5_pos%>%
+  mutate(frag_yn = ifelse(DTXSID %in% pos_frag$DTXSID, "yes", "no"),
+         confirmed_frag= ifelse(DTXSID %in% confirmed_dtxsid, "confirmed", "notconf"), 
+        of_interest = ifelse(DTXSID %in% dtxsidof_interest, "yes", NA), 
+        acrylate = ifelse(grepl('acrylate', name_original), 1, 0),
+        is_ucsfdrug = ifelse(grepl('Drug', source), 1, 0),
+        sig_dif1v2or3 = ifelse(PvalV1_v3 <= 0.1 | PvalV1_V2<= 0.1, 1, 0), 
+        ubiqui_MC = ifelse(MC_sum >=1 & sig_dif1v2or3 ==0, 1, 0)
+         )
+
+
+
+# table(lim_df5_pos$confirmed_frag)
+# table(lim_df5_pos$frag_yn)
+#Add in chemical data based on structure from Alex Borrel
+```
+
+
+```{r}
+#Add in chemical data based on structure from Alex Borrel
+
+#read in positive PAH data: 
+nitro_df <- read_csv("data_files_csv/POS_match_PAH.csv")
+
+
+#keep dtxsid and new columns
+nitro_df <- nitro_df[ , c(1, 4:8)]
+nitro_df$nitro_sum<- rowSums(nitro_df[,c(2:6)], na.rm = TRUE)
+
+
+table(nitro_df$`nitro benzene`)
+#merge with lim_df5_pos but keep all featureids
+
+test <- merge(df5_pos, nitro_df, by = "DTXSID", all.x = TRUE)
+
+#check if the same DTXSIDs appear
+df5_pos$DTXSID[df5_pos$`nitro benzene`==1]%in%nitro_df$DTXSID[nitro_df$`nitro benzene`==1]
+
+
+#import PAH and Drug data from Alex
+drug_PAH_df <- read_csv("data_files_csv/POS_drug_PAH.csv")
+drug_PAH_df <- drug_PAH_df[ , c(3, 6:13)]
+
+
+drug_PAH_df <- drug_PAH_df%>%
+  mutate(drug_any = ifelse(SWGDRUG =="Y", 1, ifelse(STATINS =="Y", 1, ifelse(UOATARGPHARMA =="Y", 1, ifelse(VETDRUGS=="Y", 1, ifelse(DRUGBANK =="Y", 1, ifelse(ANTIBIOTICS =="Y", 1, ifelse(ZINC15PHARMA =="Y", 1, 0))))))))
+
+drug_PAH_df <- drug_PAH_df%>%
+  filter(DTXSID != "-")
+
+drug_PAH_df <- distinct(drug_PAH_df)
+
+#no PAHs in this list. 
+
+df5_pos <- merge(test, drug_PAH_df, by = "DTXSID", all.x = TRUE)
+
+```
+
+```{r}
+#make a table with only those features that meet path1 criteria: FB is 1/2 of the Visit 1, detected in at least 3 people of visit 1, and has significant difference between V1 vs V2 OR V1 vs V3. 
+
+lim_df5_pos <- df5_pos%>% 
+  filter(percent_FBvV1<=50,  DFv1_min ==1)
+
+
+lim_df5_pos <- lim_df5_pos%>%
+  # filter(sig_dif1v2or3 )%>%
+  rowwise(featureid)%>%
+  mutate(of_interest_all = sum(c(PFAS, FRs, nitro_sum, acrylate, MC_sum, ubiqui_MC ), na.rm =TRUE), 
+         of_interest_cat = ifelse(is_ucsfdrug!=1 & of_interest_all>0, 1, 0))
+
+lim_df5_pos %>%
+  filter(of_interest_cat==1)%>%
+  group_by(Adduct)%>%
+  summarise(count=n_distinct(featureid)) ###93
+
+lim_df5_pos %>%
+  group_by(Adduct)%>%
+  summarise(count=n_distinct(featureid)) ###93
+
+
+# selected_pos <- distinct(lim_df5_pos, featureid, .keep_all = TRUE)
+
+
+#save the limited dataframe for analysis and feature selection
+#use lim_df5_neg for making the boxplots
+
+write.csv(lim_df5_pos, "20210716POS_features_FF_limited.csv")
+```
+
+
+```{r, echo = FALSE, eval = FALSE}
+
+# compare the number of features that are newly matched in this second annotation. 
+
+#read in first annotation
+old_annotation_sansMB <- read.csv("2020_POSAnnotation_noMBfilter.csv", stringsAsFactors = FALSE)
+
+# merge with df5_pos by DTXSID
+test_annotation <- merge(df5_pos, old_annotation_sansMB, by = "DTXSID", all.x = TRUE)
+
+test_annotation <- test_annotation %>%
+  mutate(new_feature = as.factor(ifelse(DTXSID == "-", 1, 0)))
+
+# table(is.na(test_annotation$DTXSID))
+
+# table(test_annotation$new_feature) #119 new features
+
+test_annotation$DB_name[test_annotation$new_feature==1]
+```
+
+
+
+
+```{r, eval=TRUE, echo = FALSE}
+
+# Number of features that have higher DF in visit 1-- statistically significant
+# higher mean in visit 1 than visit 3
+
+#first make original data usable by averaging r001 and r002
+#  take average of .r001 and .r002
+
+new_df <- pos_xset[, 1:2]
+
+
+#make for loop to combine runs r001, r002. take the average intensity of the two runs for each participant.
+# dim(pos_xset)
+
+positions = seq(3,130, by = 2)
+sample_id = substr(colnames(pos_xset)[positions], 1, 7)
+
+for (aux in seq_along(positions)) {
+  pos1 = positions[aux]
+  pos2 = pos1 + 1
+  a = rowMeans(pos_xset[, pos1:pos2])
+  new_df[ ,aux + 2] = a
+}
+colnames(new_df)[seq_along(positions) + 2] = sample_id
+
+new_df$mz<-round(new_df$mz,5)
+new_df$rt <- round(new_df$rt, 1)
+new_df$featureid<-as.character(paste(new_df$mz,new_df$rt,sep = "-"))
+
+
+# replace those with values rel intensity <1000 to 0 because they are noise. 
+
+#x <- new_df[1:100, 10:15]
+# apply(x,2, function(y) sum(y==0))
+
+# for(j in 10:ncol(new_df)){
+#   new_df[new_df[, j]<1000, j] <- 0
+# }
+
+df_plot <- merge(new_df, lim_df5_pos, by = "featureid")
+# to plot the limited variables
+# df_plot_lim <- merge(new_df, lim_df5_pos, by = "featureid")
+```
+
+
+# Print plots describing features detected in positive  mode
+
+```{r echo= FALSE, warning=FALSE}
+
+# select_df <- new_df%>%
+#   filter(featureid %in% df5_pos$featureid) #select those feature ids that are in the summarized and selected for MB correction N= 113 so only unique matches
+
+# select_df <- merge(new_df, df5_pos, by  = "featureid") # to include all matches N= 182
+
+
+#merge with the DTSC data which includes the visit and firefighter ID information
+dtsc <- select(dtsc, c("dtsc_id", "FF_id", "visit", "new_visit", "newFF_id"))
+dtsc <- unique(dtsc) #keep unique variables
+
+#make into a long-format for plotting
+df_plot_long <-  gather(df_plot, "sample_id", "intensity", BD01346:DIWB2.b )
+
+df_plot_long$type<-substr(df_plot_long$sample_id,1,2)
+
+#merge
+df_plot <- merge(df_plot_long, dtsc, by.x= "sample_id", by.y = "dtsc_id", all.x = TRUE)
+
+
+#again relable FB and DIWB, raname variables
+
+df_plot <- df_plot%>%
+  mutate(new_visit_blk = ifelse(newFF_id == "F197"|newFF_id== "F223"|newFF_id== "F231"|newFF_id== "F232", "FB", new_visit),
+         new_visit_blk = ifelse(is.na(new_visit) & type =="DI", "DIWB", new_visit_blk),
+         group= factor(new_visit_blk), 
+         class = ifelse(PFAS==1, "pfas", ifelse(FRs ==1, "fr", (ifelse(nitroPAH_bin==1, "nitroPAH", ifelse(ERactive_bin==1, "er_act", ifelse(E2Up_bin==1, "e2up", ifelse(P4Up_bin==1, "p4up", ifelse(MC==1, "mc", NA)))))))))
+
+class_name <- df_plot%>% 
+  group_by(featureid)%>%
+  summarize(class = ifelse(PFAS==1, "pfas", ifelse(FRs ==1, "fr", (ifelse(nitroPAH_bin==1, "nitroPAH", ifelse(ERactive_bin==1, "er_act", ifelse(E2Up_bin==1, "e2up", ifelse(P4Up_bin==1, "p4up", ifelse(MC==1, "mc", NA)))))))))
+
+# df_plot_long$newFF_id[is.na(df_plot_long$newFF_id)] <- "FBlank"
+
+#add name to feature id. 
+
+# make new COl with metabolite
+```
+\newpage
+
+# Feature candidates for confirmation based on if mammary carcinogen, Nitro-compounds, not drugs. 
+also meets FB filter and is significant between visits 1 and 2 or visits 1 and 3
+
+```{r, eval=TRUE}
+count <- df_plot%>%
+  group_by(featureid)%>%
+  filter(of_interest=="yes")%>%
+  count(featureid)
+
+
+df_plot%>%
+  group_by(featureid)%>%
+  filter(of_interest=="yes")%>%
+  # filter(mz.x < 200)%>%
+ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    # facet_wrap(.~name_original, scales = "free" )+
+  scale_y_continuous(trans= "log10")+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+  # geom_text(aes(x= featureid, y = 1000000, label = class))+
+    labs(title = "Selected features of interest (MC, Nitro compound, not a UCSF drug)", 
+       caption = "(pos-ionization)") 
+
+# ggsave(filename = "Boxplot_selected_features.png")
+```
+
+
+\newpage
+# 1. All freatures detected in at least 3 participants in visit 1, has significant difference between V1 vs V2 or V3, and meets FB filter 
+
+* Meets FB filter, Min DF and has statistically significant difference between visit 1 vs Visit 2 OR visit 1 vs Visit 3. 
+
+* Wilcoxon rank-sum test, p-value<=0.10.1
+
+* n = 94
+ 
+```{r, warning=FALSE}
+#sum the number of features that meet this criteria. look at number in count
+count <- df_plot%>%
+  group_by(featureid)%>%
+  filter(percent_FBvV1<=50, DFv1_min ==1,
+           PvalV1_V2 <=0.1 | PvalV1_v3<0.1)%>%
+  count(featureid)
+
+count <- df_plot%>%
+  group_by(featureid)%>%
+  filter(percent_FBvV1<=50, DFv1_min ==1,
+           PvalV1_V2 <=0.1 | PvalV1_v3<0.1)%>%
+  count(featureid)
+
+df_plot%>%
+  group_by(featureid)%>%
+  filter(percent_FBvV1<=50, DFv1_min ==1,
+           PvalV1_V2 <=0.1 | PvalV1_v3<0.1)%>%
+  filter(mz.x < 200)%>%
+ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    # facet_wrap(.~name_original, scales = "free" )+
+  scale_y_continuous(trans= "log10")+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+  # geom_text(aes(x= featureid, y = 1000000, label = class))+
+    labs(title = "Features that meet FB filter, detected in at least 3 samples of visit 1 and \n has different intensity between visit 1 and 3 or visit 1 and 2", 
+       caption = "wilcoxon p-value <= 0.1 (pos-ionization) mz<200") 
+
+df_plot%>%
+  group_by(featureid)%>%
+  filter(percent_FBvV1<=50, DFv1_min ==1,
+           PvalV1_V2 <=0.1 | PvalV1_v3<0.1)%>%
+  filter(mz.x >=200, mz.x<250)%>%
+ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    # facet_wrap(.~name_original, scales = "free" )+
+  scale_y_continuous(trans= "log10")+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+  # geom_text(aes(x= featureid, y = 1000000, label = class))+
+    labs(title = "Features that meet FB filter, detected in at least 3 samples of visit 1 and \n has different intensity between visit 1 and 3 or visit 1 and 2", 
+       caption = "wilcoxon p-value <= 0.1 (pos-ionization), mz>=200, mz<250") 
+
+df_plot%>%
+  group_by(featureid)%>%
+  filter(percent_FBvV1<=50, DFv1_min ==1,
+           PvalV1_V2 <=0.1 | PvalV1_v3<0.1)%>%
+  filter(mz.x >=250, mz.x<280)%>%
+ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    # facet_wrap(.~name_original, scales = "free" )+
+  scale_y_continuous(trans= "log10")+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+  # geom_text(aes(x= featureid, y = 1000000, label = class))+
+    labs(title = "Features that meet FB filter, detected in at least 3 samples of visit 1 and \n has different intensity between visit 1 and 3 or visit 1 and 2", 
+       caption = "wilcoxon p-value <= 0.1 (pos-ionization), mz>=250, mz<280") 
+
+df_plot%>%
+  group_by(featureid)%>%
+  filter(percent_FBvV1<=50, DFv1_min ==1,
+           PvalV1_V2 <=0.1 | PvalV1_v3<0.1)%>%
+  filter(mz.x >=280, mz.x<300)%>%
+ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    # facet_wrap(.~name_original, scales = "free" )+
+  scale_y_continuous(trans= "log10")+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+  # geom_text(aes(x= featureid, y = 1000000, label = class))+
+    labs(title = "Features that meet FB filter, detected in at least 3 samples of visit 1 and \n has different intensity between visit 1 and 3 or visit 1 and 2", 
+       caption = "wilcoxon p-value <= 0.1 (pos-ionization), mz>=280, mz<300") 
+
+df_plot%>%
+  group_by(featureid)%>%
+  filter(percent_FBvV1<=50, DFv1_min ==1,
+           PvalV1_V2 <=0.1 | PvalV1_v3<0.1)%>%
+  filter(mz.x >=300, mz.x<350)%>%
+ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    # facet_wrap(.~name_original, scales = "free" )+
+  scale_y_continuous(trans= "log10")+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+  # geom_text(aes(x= featureid, y = 1000000, label = class))+
+    labs(title = "Features that meet FB filter, detected in at least 3 samples of visit 1 and \n has different intensity between visit 1 and 3 or visit 1 and 2", 
+       caption = "wilcoxon p-value <= 0.1 (pos-ionization), mz>=300, mz<250") 
+
+
+df_plot%>%
+  group_by(featureid)%>%
+  filter(percent_FBvV1<=50, DFv1_min ==1,
+           PvalV1_V2 <=0.1 | PvalV1_v3<0.1)%>%
+  filter(mz.x >=350, mz.x<400)%>%
+ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    # facet_wrap(.~name_original, scales = "free" )+
+  scale_y_continuous(trans= "log10")+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+  # geom_text(aes(x= featureid, y = 1000000, label = class))+
+    labs(title = "Features that meet FB filter, detected in at least 3 samples of visit 1 and \n has different intensity between visit 1 and 3 or visit 1 and 2", 
+       caption = "wilcoxon p-value <= 0.1 (pos-ionization); mz>=350, mz<400") 
+
+
+df_plot%>%
+  group_by(featureid)%>%
+  filter(percent_FBvV1<=50, DFv1_min ==1,
+           PvalV1_V2 <=0.1 | PvalV1_v3<=0.1)%>%
+  filter(mz.x >=400)%>%
+ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    # facet_wrap(.~name_original, scales = "free" )+
+  scale_y_continuous(trans= "log10")+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+  # geom_text(aes(x= featureid, y = 1000000, label = class))+
+    labs(title = "Features that meet FB filter, detected in at least 3 samples of visit 1 and \n has different intensity between visit 1 and 3 or visit 1 and 2", 
+       caption = "wilcoxon p-value <= 0.1 (pos-ionization), mz>=400") 
+
+```
+\newpage
+
+# 2. Features that are any mammary carcinogen AND detected in at least 3 participants in visit 1, has significant difference between V1 vs V2 or V3, and meets FB filter 
+
+* Is MC (using a sum of all variables associated with carcinogenicity)
+
+* Includes those with a FB<50% of Visit 1, detected in at least 3 of visit 1. MC_sum >=1 and is significant difference between visit 1 and Visit 2 or visit 3
+
+* n = 13
+
+```{r}
+count_mc <- df_plot%>%
+  group_by(featureid)%>%
+  filter(percent_FBvV1<=50, DFv1_min ==1,  MC_sum>=1)%>%
+  filter(PvalV1_V2 <=0.1 | PvalV1_v3<=0.1)%>%
+  count(featureid)
+
+df_plot%>%
+  group_by(featureid)%>%
+  filter(percent_FBvV1<=50,  DFv1_min==1,  
+           MC_sum>=1, PvalV1_V2 <=0.1 | PvalV1_v3<=0.1 )%>%
+ggplot(aes(x = DTXSID, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+  # facet_wrap(.~name_original, scales = "free" )+
+  scale_y_continuous(trans= "log10")+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+  # geom_text(aes(x= featureid, y = 1000000, label = class))+
+    labs(title = "Features that meet FB filter, has a significant difference between V1,V2 orV3, and is a mammary carcinogen", 
+       caption = "(neg-ionization)") 
+```
+
+
+\newpage
+# 3 Features that are metabolites AND detected in at least 3 participants in visit 1, has significant difference between V1 vs V2 or V3, and meets FB filter 
+
+* is metabolite (is_metab==1)
+
+* Includes those with a FB<50% of Visit 1, detected in at least 3 of visit 1, is_metab==1, and is significant difference between visit 1 and Visit 2 or visit 3. 
+
+* n = 14
+
+```{r}
+## n= 14
+
+count_met <- df_plot%>%
+  group_by(featureid)%>%
+  filter(percent_FBvV1<=50, DFv1_min ==1, is_metab==1)%>%
+  filter(PvalV1_V2 <=0.1 | PvalV1_v3<=0.1)%>%
+  count(featureid)
+
+df_plot%>%
+  group_by(featureid)%>%
+  filter(percent_FBvV1<=50,  DFv1_min==1,  
+           is_metab==1, PvalV1_V2 <=0.1 | PvalV1_v3<0.1 )%>%
+ggplot(aes(x = DTXSID, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+  # facet_wrap(.~name_original, scales = "free" )+
+  scale_y_continuous(trans= "log10")+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+  # geom_text(aes(x= featureid, y = 1000000, label = class))+
+    labs(title = "Features that meet FB filter, has a significant difference between V1,V2 orV3, and is a mammary carcinogen", 
+       caption = "(neg-ionization)") 
+
+```
+\newpage
+
+# 4 Exposure predicted, meets FB filter, min detection frequency and has significant p-value between v1 vs v2 or v3. 
+
+* n= 22
+```{r}
+count_exposurePred <- df_plot%>%
+  group_by(featureid)%>%
+  filter(percent_FBvV1<=50, DFv1_min ==1,  exposurepred_bin==1)%>%
+  filter(PvalV1_V2 <=0.1 | PvalV1_v3<=0.1)%>%
+  count(featureid, DTXSID, name_original, det_count_v1, det_count_v2, det_count_v3)
+
+
+df_plot %>% 
+  filter(percent_FBvV1<=50 & exposurepred_bin==1)%>%  
+  filter(PvalV1_V2 <=0.1 | PvalV1_v3<=0.1)%>%
+  # filter(mz.x<125)%>%
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+  
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+  # geom_text(data=count_exposurePred, aes(x=featureid, label=(DTXSID)), col='red', size=10)+
+   # facet_wrap(.~name_original, scales = "free" )+
+  labs(title = "Exposure predicted", 
+       caption = "(neg-ionization)") 
+```
+
+
+# Mammary Carcinogen using the sum. meets MB filter, min-DF
+```{r warning=FALSE}
+
+
+df_plot%>%
+  group_by(featureid)%>%
+  filter(percent_FBvV1<=50,  DFv1_min==1,  
+           MC_sum>=1)%>%
+  filter(mz.x<200 )%>%
+ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    # facet_wrap(.~name_original, scales = "free" )+
+  scale_y_continuous(trans= "log10")+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+  # geom_text(aes(x= featureid, y = 1000000, label = class))+
+    labs(title = "Mammary Carcinogens, meet FB filter", 
+       caption = "(pos-ionization)") 
+
+
+df_plot%>%
+  group_by(featureid)%>%
+  filter(percent_FBvV1<=50,  DFv1_min==1,  
+           MC_sum>=1)%>%
+  filter(mz.x >=200, mz.x<250)%>%
+ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    # facet_wrap(.~name_original, scales = "free" )+
+  scale_y_continuous(trans= "log10")+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+  # geom_text(aes(x= featureid, y = 1000000, label = class))+
+labs(title = "Mammary Carcinogens, meet FB filter", 
+     caption = "(pos-ionization) mz>=200, mz<250") 
+
+
+df_plot%>%
+  group_by(featureid)%>%
+  filter(percent_FBvV1<=50,  DFv1_min==1,  
+           MC_sum>=1)%>%
+  filter(mz.x >=250, mz.x<300)%>%
+ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    # facet_wrap(.~name_original, scales = "free" )+
+  scale_y_continuous(trans= "log10")+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+  # geom_text(aes(x= featureid, y = 1000000, label = class))+
+    labs(title = "Mammary Carcinogens, meet FB filter", 
+       caption = "(pos-ionization) mz>=250, mz<300") 
+
+
+df_plot%>%
+  group_by(featureid)%>%
+  filter(percent_FBvV1<=50,  DFv1_min==1,  
+           MC_sum>=1)%>%
+  filter(mz.x >=300)%>%
+ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    # facet_wrap(.~name_original, scales = "free" )+
+  scale_y_continuous(trans= "log10")+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+  # geom_text(aes(x= featureid, y = 1000000, label = class))+
+    labs(title = "Mammary Carcinogens, meet FB filter", 
+       caption = "(pos-ionization) mz>=300") 
+
+```
+
+\newpage
+# PFAS-- meets FB filter
+
+```{r, echo = FALSE, warning=FALSE}
+df_plot %>% 
+ filter(percent_FBvV1<=50 & PFAS==1)%>%  
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+  labs(title = "PFAS", 
+       caption = "(pos-ionization)") 
+```
+\newpage
+# Flame retardants-- no field blank filter
+
+```{r, echo = FALSE, eval=TRUE}
+ df_plot %>% 
+ filter(FRs==1)%>%  
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+  labs(title = "Flame Retardant chemicals", 
+       caption = "BUT does not meet FB filter (pos-ionization)") 
+```
+\newpage
+# nitroPAH-- None there
+
+```{r, echo = FALSE, eval=FALSE}
+ df_plot %>% 
+ filter(nitroPAH_bin==1)%>%  
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+  labs(title = "NitroPAH", 
+       caption = "BUT does not meet FB filter (pos-ionization)") 
+```
+\newpage
+# Metabolite
+
+```{r}
+df_plot %>% 
+ filter(percent_FBvV1<=50 & is_metab==1)%>%  
+  filter(mz.x<300)%>%
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+  labs(title = "Is metabolite, mz<300", 
+       caption = "(pos-ionization)") 
+
+df_plot %>% 
+   filter(percent_FBvV1<=50 & is_metab==1)%>%  
+  filter(mz.x>=300 & mz.x<400)%>%
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+  labs(title = "Is metabolite, mz>=300 & mz<400", 
+       caption = "(pos-ionization)") 
+
+df_plot %>% 
+   filter(percent_FBvV1<=50 & is_metab==1)%>%  
+  filter(mz.x>=400 & mz.x<500)%>%
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+  labs(title = "Is metabolite, mz>=400 & mz<500", 
+       caption = "(pos-ionization)") 
+
+df_plot %>% 
+   filter(percent_FBvV1<=50 & is_metab==1)%>%  
+  filter(mz.x>=500)%>%
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+  labs(title = "Is metabolite, mz>=500", 
+       caption = "(pos-ionization)") 
+
+```  
+\newpage
+# exposure predicted
+
+```{r, echo = FALSE}
+
+
+df_plot %>% 
+  filter(percent_FBvV1<=50 & exposurepred_bin==1)%>%  
+  filter(mz.x<125)%>%
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+    # facet_wrap(.~name_original, scales = "free" )+
+  labs(title = "Exposure predicted and mz <125", 
+       caption = "(pos-ionization)") 
+
+df_plot %>% 
+  filter(percent_FBvV1<=50 & exposurepred_bin==1)%>%  
+  filter(mz.x>=125 & mz.x<150)%>%
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+    # facet_wrap(.~name_original, scales = "free" )+
+  labs(title ="Exposure predicted and mz>=125 & mz<150", 
+       caption = "(pos-ionization)") 
+
+
+df_plot %>% 
+ filter(percent_FBvV1<=50 & exposurepred_bin==1)%>%  
+  filter(mz.x>=150 & mz.x<175)%>%
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+    # facet_wrap(.~name_original, scales = "free" )+
+  labs(title = "Exposure predicted and mz>=150 & mz>175", 
+       caption = "(pos-ionization)") 
+
+df_plot %>% 
+  filter(percent_FBvV1<=50 & exposurepred_bin==1)%>%  
+  filter(mz.x>=175 & mz.x<200)%>%
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+    # facet_wrap(.~name_original, scales = "free" )+
+  labs(title = "Exposure predicted and mz>=175 & mz<200", 
+       caption = "(pos-ionization)") 
+
+df_plot %>% 
+  filter(percent_FBvV1<=50 & exposurepred_bin==1)%>%  
+  filter(mz.x>=200& mz.x<250)%>%
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+    # facet_wrap(.~name_original, scales = "free" )+
+  labs(title = "Exposure predicted and mz>=200 & mz<250", 
+       caption = "(pos-ionization)") 
+
+
+df_plot %>% 
+  filter(percent_FBvV1<=50 & exposurepred_bin==1)%>%  
+  filter(mz.x>=250 & mz.x<300)%>%
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+    # facet_wrap(.~name_original, scales = "free" )+
+  labs(title = "Exposure predicted and mz>=250 & mz<300", 
+       caption = "(pos-ionization)") 
+
+df_plot %>% 
+  filter(percent_FBvV1<=50 & exposurepred_bin==1)%>%  
+  filter(mz.x>=300 & mz.x<400 )%>%
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+    # facet_wrap(.~name_original, scales = "free" )+
+  labs(title = "Exposure predicted and mz>=300 & mz<400", 
+       caption = "(pos-ionization)") 
+
+df_plot %>% 
+  filter(percent_FBvV1<=50 & exposurepred_bin==1)%>%  
+  filter(mz.x>=400)%>%
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+    # facet_wrap(.~name_original, scales = "free" )+
+  labs(title = "Exposure predicted and mz>=400", 
+       caption = "(pos-ionization)") 
+
+```
+
+\newpage
+# ERactive
+
+```{r echo = FALSE}
+df_plot %>% 
+ filter(percent_FBvV1<=50 & ERactive_bin==1)%>%  
+  filter(mz.x<250)%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+  # facet_wrap(.~name_original, scales = "free" )+
+# theme(axis.title.x=element_blank(),
+#         axis.text.x=element_blank(),
+#         axis.ticks.x=element_blank())+
+  labs(title = "Is ERactive", 
+       caption = "(pos-ionization)") 
+
+df_plot %>% 
+ filter(percent_FBvV1<=50 & ERactive_bin==1)%>%  
+  filter(mz.x>=250)%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+  # facet_wrap(.~name_original, scales = "free" )+
+# theme(axis.title.x=element_blank(),
+#         axis.text.x=element_blank(),
+#         axis.ticks.x=element_blank())+
+  labs(title = "Is ERactive", 
+       caption = "(pos-ionization)") 
+```
+\newpage
+# E2Up
+
+```{r echo = FALSE}
+df_plot %>% 
+ filter(percent_FBvV1<=50 & E2Up_bin==1)%>%  
+  
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+  # facet_wrap(.~name_original, scales = "free" )+
+# theme(axis.title.x=element_blank(),
+        # axis.text.x=element_blank(),
+        # axis.ticks.x=element_blank())+
+  # ylim(NA, 400000)+
+  labs(title = "Is E2Up bin", 
+       caption = "(pos-ionization)") 
+
+```
+
+\newpage
+# P4Up
+
+
+```{r echo = FALSE}
+df_plot %>% 
+ filter(percent_FBvV1<=50 & P4Up_bin==1)%>%  
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+    # facet_wrap(.~name_original, scales = "free" )+
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+   scale_y_continuous(trans= "log10")+
+  labs(title = "Is P4Upbin", 
+       caption = "(pos-ionization)") 
+```
+
+\newpage
+# MC
+
+```{r echo=FALSE}
+df_plot %>% 
+ filter(percent_FBvV1<=50 & MC==1)%>%  
+    filter(mz.x<280)%>%
+
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+     # facet_wrap(.~featureid, scales = "free" )+
+   scale_y_continuous(trans= "log10")+
+# theme(axis.title.x=element_blank(),
+#         axis.text.x=element_blank(),
+#         axis.ticks.x=element_blank())+ 
+theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+    labs(title = "Mammary Carcinogens" , 
+       caption = "Is MC (pos-ionization)") 
+
+df_plot %>% 
+ filter(percent_FBvV1<=50 & MC==1)%>%  
+    filter(mz.x>=280)%>%
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = featureid, y = intensity,  color = new_visit_blk))+
+  geom_boxplot()+
+     # facet_wrap(.~featureid, scales = "free" )+
+   scale_y_continuous(trans= "log10")+
+# theme(axis.title.x=element_blank(),
+#         axis.text.x=element_blank(),
+#         axis.ticks.x=element_blank())+ 
+theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+    labs(title = "Mammary Carcinogens" , 
+       caption = "Is MC (pos-ionization)") 
+
+
+```
+
+#other plots but not run
+
+```{r eval= FALSE, echo = FALSE}
+dfnomatch_1v2<- df_nomatch_pos %>%
+  filter(conc_p_V2 <=0.05)%>%
+  mutate(absMED = abs(med_diff1v2), 
+         absDF = abs(df1v2_difference),
+         compared = "1v2")%>%
+  arrange(desc(absDF))
+selected_absmed_1v2 <- med_nomatch_1v2[1:12, ]
+
+#select those with largest absolute difference in MEDIAN between visit 1 and visit 3
+
+med_nomatch_1v3<- df_nomatch_pos %>%
+  filter(conc_p<=0.05)%>%
+  mutate(absMED = abs(med_diff1v3), 
+         absDF = abs(df1v3_difference), 
+         compared = "1v3")%>%
+  arrange(desc(absMED))
+
+selected_absmed_1v3 <- med_nomatch_1v3[1:12, ]
+
+
+#join the selected median lists. 
+test2 <- rbind(selected_absmed_1v2, selected_absmed_1v3)
+
+test2$featureid[duplicated(test2$featureid)]
+
+test2 <- test2%>%distinct(test2$featureid, .keep_all = TRUE)
+
+test2 <- test2%>%
+  mutate(feat_dup = round(mz, 0))
+
+nomatch_select_df <- new_df%>%
+  filter(featureid %in% df_nomatch_pos$featureid) #select those feature ids that are in the summarized and selected for MB correction N= 113 so only unique matches
+
+# select_df <- merge(new_df, df5_pos, by  = "featureid") # to include all matches N= 182
+
+#merge again with dtsc. 
+dtsc <- dtsc %>%
+  mutate(time = ifelse(new_visit =="Visit 1", 1, ifelse(new_visit =="Visit 2", 2, ifelse(new_visit =="Visit 3", 3, NA))))
+
+notmatch_plot_long <-  gather(nomatch_select_df, "sample_id", "intensity", BD01346:MB2..2. )
+
+
+notmatch_plot_long$type<-substr(notmatch_plot_long$sample_id,1,2)
+
+# df_plot_long$newFF_id[is.na(df_plot_long$newFF_id)] <- "FBlank"
+
+
+# long_df2 <- long_df%>%
+#   mutate(new_visit_blk = ifelse(is.na(new_visit) & type =="MB", "mb", new_visit),
+#          group= factor(new_visit_blk))
+# table(long_df2$new_visit_bl)
+
+
+notmatch_plot <- merge(notmatch_plot_long, dtsc, by.x= "sample_id", by.y = "dtsc_id")
+
+ 
+sigp <- df_nomatch_pos$featureid[df_nomatch_pos$conc_p<0.05]
+sigp2 <- df_nomatch_pos$featureid[df_nomatch_pos$conc_p_V2<0.05]
+
+
+# df_plot %>% 
+#   # filter(featureid %in% cv_keep)%>% 
+#   filter(featureid %in% gm_diff_12| featureid %in% df_diff)%>%
+#   filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+#   ggplot(aes(x = visit, y = intensity, group= featureid, color = featureid))+
+#   geom_line()+
+#   facet_wrap(.~FF_id, scales = "free" )+
+#   theme(legend.position = "none")+
+#   scale_y_log10()+
+#   labs(title = "Relative intensity of features different at time 1 vs time 2 for each study ID n=18", 
+#        caption = "filtered by: GMv1 >GMv3 or DFv1 > DFv3") 
+
+
+
+# ggsave("n20_POSFFfeatures_GMorDF_Diff.png", height = 7, width = 14 )
+
+notmatch_plot %>% 
+  # filter(featureid %in% selectedmed)%>%
+  filter(featureid %in% sigp | featureid %in% sigp2)%>%
+  filter(featureid %in% test2$featureid)%>%
+  filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = new_visit, y = intensity, group= featureid, color = featureid))+
+  geom_line()+
+  facet_wrap(.~newFF_id, scales = "free" )+
+  theme(legend.position = "none")+
+  scale_y_log10()+
+   labs(title = "Relative intensity of features with a significant difference at T1 vs T2 or T1 vs T3  for each study ID n= 20", 
+       caption = "p value < 0.05; (pos-ionization)") 
+
+# ggsave("n20_POSFFfeatures_sig_difference.png", height = 7, width = 14 )
+
+#Plot by feature rather than id: 
+notmatch_plot %>% 
+  filter(featureid %in% sigp | featureid %in% sigp2)%>%
+  filter(featureid %in% test2$featureid)%>%
+  filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = new_visit, y = intensity, group= newFF_id, color = newFF_id))+
+  geom_line()+
+  facet_wrap(.~featureid, scales = "free" )+
+  theme(legend.position = "none")+
+  scale_y_log10()+
+   labs(title = "Relative intensity of non-matched selected features", 
+       caption = "p-value <=0.05. includes 21 features with largest absolute median difference between visit 1 and visit 2 or 3") 
+
+
+notmatch_plot %>% 
+  filter(featureid %in% sigp | featureid %in% sigp2)%>%
+  filter(featureid %in% test2$featureid)%>%
+  filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  ggplot(aes(x = new_visit, y = intensity))+
+  geom_boxplot()+
+  facet_wrap(.~featureid, scales = "free" )+
+  theme(legend.position = "none")+
+  scale_y_log10()+
+   labs(title = "Relative intensity of non-matched selected features", 
+       caption = "p-value <=0.05. includes 21 features with largest absolute median difference between visit 1 and visit 2 or 3") 
+
+
+```
+
+
+
+
+
+# make the stacked barplot. by study id.  
+I'm not really sure what this does for me. I think this graph would be better with classes of compounds stacked to show chemical levels in individuals. 
+```{r, eval= FALSE, echo = FALSE}
+df_pplot_test <- df_plot %>%
+  mutate(class = ifelse(PFAS==1, "PFAS", ifelse( FRs==1, "FR", ifelse(MC ==1, "MC", ifelse(E2Up_bin==1, "E2Up_bin", ifelse( P4Up_bin==1, "P4Up_bin", ifelse(source=="metabolite", "metabolite", NA)))))), 
+         count = 1)
+
+table(df_plot$class)
+
+test <- df_pplot_test %>% 
+  filter(!is.na(class))%>%
+  group_by(class)
+
+test %>% 
+  filter(percent_FBvV1<=50)%>%    # filter(featureid %in% sigp)%>%
+  # filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  # filter(FF_id == "F188")%>%
+  # group_by(FF_id)%>%
+  ggplot(aes(x = count, y = new_visit_blk , fill = class))+
+  geom_col()+
+  # facet_grid(new_visit_blk~., scales = "free" )+
+  # theme(legend.position = "none")+
+  # scale_x_log10()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  labs(title = "Cumulative relative intensity of all features by study id", 
+         caption = "filtered by: NOT FILTERED") 
+
+
+
+
+```
+
+```{r eval= FALSE, echo=FALSE}
+df_plot %>% 
+  # filter(featureid %in% sigp)%>%
+  # filter(visit == "Visit 1")%>%
+  # filter(newFF_id == "F501")%>%
+  # group_by(FF_id)%>%
+  ggplot(aes(x = newFF_id, y = intensity, color = featureid ))+
+  geom_boxplot()+
+  # facet_wrap(.~newFF_id, scales = "free" )+
+  scale_y_log10()+
+  theme(legend.position = "none")
+  # ggtitle("Relative intensity of features different at time 1 vs time 3 for each study ID ") 
+  # 
+
+```
+
+
+# plot the change in intensity over time. (per feature or all together?)
+```{r, echo = FALSE, eval = FALSE}
+
+#from Alan Hubbards class: this code needs fixing
+library(data.table)
+dat=data.table(df_plot)
+dat=dat[order(newFF_id,new_visit)]
+dat1=dat[-1,] #can't get a change with the first observation because there is no measure before it. 
+dat2=dat[-dim(dat)[1],]
+Ystar = dat1[,"intensity"]-dat2[,"intensity"]
+# Xstar=dat1[,"vl500"]-dat2[,"vl500"]
+Ystar[dat1$id != dat2$id]=NA #making the value blank if cd4 is from 2 different id's
+dat1=data.table(dat1,Ystar=Ystar)
+
+p <- ggplot(data = dat1, aes(x = featureid, y = Ystar.intensidy, ))
+p + geom_point()+geom_smooth(method="loess", size=1, formula = y ~ x, span = 0.55)
+
+p <- ggplot(df_plot, aes(x = new_visit, y = intensity, group= newFF_id))
+
+```
+
+
+```{r echo = FALSE, eval= FALSE}
+###Quantify associations between intensity~group+batch using lm for each feature
+#pull in questionnaire data and merge with Features data by study ID. 
+# first create clean database with the necessary summary variables. by study ID e.g. fire between etc. 
+visit_act_df <- read.csv(file = "describe_visits.csv")
+
+test <- df_plot %>% 
+  mutate(intensity1 = ifelse(intensity ==0, NA, intensity), 
+         log2_intensity = log2(intensity1))
+
+
+
+test$study_id <- str_remove(test$newFF_id,pattern =  "F")
+
+
+test <- merge(visit_act_df, test, by = c("study_id", "new_visit"))
+
+###Perform glm
+glm_pos<-test %>%
+  group_by(featureid) %>%
+    do(model=glm(log2_intensity~new_visit,data= .))
+
+summary(glm(log2_intensity~new_visit, data = test))
+
+levels(test$new_visit)
+library(broom)
+glm_models<-glm_pos %>%
+  tidy(model)
+
+glm_models_visit2<-filter(glm_models, term=="new_visitVisit 2" & p.value<=0.1)
+glm_models_visit3<-filter(glm_models, term=="new_visitVisit 3" & p.value<=0.1)
+
+```
+
+
+#calculate average number of features measured per participant. 
+```{r echo = FALSE, eval = FALSE}
+new_df%>%
+  group_by(FF_id, featureid)%>%
+  mutate(num_features = sum(unique(featureid)))
+summarise(feature_mean= mean(intensity))
+
+sum(unique(df_plot$featureid))
+
+summary(long_df$intensity)
+
+test <- long_df%>%
+  filter(FF_id != "F197" & FF_id != "F223" & FF_id != "F231"& FF_id != "F232")%>%
+  filter(new_visit =="Visit 1")%>%
+  group_by(newFF_id)%>%
+  mutate(count_feat = ifelse(intensity> 0, 1, 0))%>%
+  summarise(num_feat = sum(count_feat))
+
+
+test%>%
+  summarize(mean= mean(num_feat),
+          sd = sd(num_feat), 
+          media = median(num_feat))
+
+# ggplot(test, aes(x = newFF_id, y = num_feat))+
+         # geom_col()
+```
+
+```{r eval = FALSE, echo = FALSE}
+###Define priority chemicals to select
+
+no_match_flag<-filter(df4_pos,Adduct=="No match")
+
+df5_pos$MS_MS<-as.factor(ifelse(df5_pos$v1df_gt20per==1 | df5_pos$sigp_score==1 ,1,0))
+summary(df5_pos$MS_MS) ###  high priority chemicals
+
+
+df5_pos %>%
+  summarise(n_distinct(featureid, na.rm = T)) ###113features
+
+df5_pos_cv<-df5_pos[,c("featureid","mz","rt","cv_visit1","cv_visit3","Adduct")]
+df5_pos_cv<-melt(df5_pos_cv, id.vars = c("featureid", "mz","rt","Adduct"))
+
+df5_pos_cv[df5_pos_cv == "NaN"] <- NA
+
+mu_pos<-df5_pos_cv %>%
+  group_by(Adduct,variable) %>%
+  summarise(mean=mean(value,na.rm=T))
+
+ggplot(df5_pos_cv, aes(x=value, color=variable))+
+  geom_histogram(fill="white", position = "dodge", binwidth = 10)+
+  geom_vline(data=mu_pos, aes(xintercept=mean, color=variable),
+             linetype="dashed")+
+  theme(legend.position="top",
+        axis.text.x = element_text(angle = 45))+
+  facet_grid(vars(Adduct),scales = "free")
+
+no_match_flag<-filter(df4_pos,Adduct=="No match")
+summary(no_match_flag$MS_MS) ###274 high priority features
+
+match_flag_pos<-filter(df4_pos, Adduct=="M+H")
+summary(match_flag_pos$MS_MS) ###52 high priority matches
+match_flag %>%
+  summarise(n_distinct(featureid, na.rm = T)) ###101 features
+
+
+
+
+df6_pos<-filter(df5_pos, MS_MS==1)
+df6_pos %>%
+  summarise(n_distinct(featureid, na.rm = T)) ###11 features
+match_flag_pos$ESI<-"pos"
+
+```
+###After statistical analysis to flag differences between visit 1 and visit 3, you can also plot the cv distribution to help identity interesting features
+###Features with low cv may possibly be endogenous compounds and we don't want to focus attention on these compounds at these stage
+####Plot CV nurses and OW
+
+```{r echo = FALSE, eval = FALSE}
+df5_cv<-df5[,c("featureid","mz","time","cv_N","cv_OW","Adduct")]
+df5_cv<-melt(df5_cv, id.vars = c("featureid", "mz","time","Adduct"))
+df5_cv[df5_cv == "NaN"] <- NA
+
+mu<-df5_cv %>%
+  group_by(Adduct,variable) %>%
+  summarise(mean=mean(value,na.rm=T))
+
+ggplot(df5_cv, aes(x=value, color=variable))+
+  geom_histogram(fill="white", position = "dodge", binwidth = 10)+
+  geom_vline(data=mu, aes(xintercept=mean, color=variable),
+             linetype="dashed")+
+  theme(legend.position="top",
+        axis.text.x = element_text(angle = 45))+
+  facet_grid(vars(Adduct),scales = "free")
+
+
+```
+
+
+
+
+#When should I take the average?
+```{recho= FALSE, eval = FALSE}
+#  take average of .r001 and .r002
+
+new_df <- pos_xset[, 1:9]
+
+#make for loop
+# dim(pos_xset)
+
+positions = seq(10,149, by = 2)
+sample_id = substr(colnames(pos_xset)[positions], 1, 7)
+
+for (aux in seq_along(positions)) {
+  pos1 = positions[aux]
+  pos2 = pos1 + 1
+  a = rowMeans(pos_xset[, pos1:pos2])
+  new_df[ ,aux + 9] = a
+}
+colnames(new_df)[seq_along(positions) + 9] = sample_id
+
+
+# replace those with values rel intensity <1000 to 0 because they are noise. 
+
+#x <- new_df[1:100, 10:15]
+# apply(x,2, function(y) sum(y==0))
+
+for(j in 10:ncol(new_df)){
+  new_df[new_df[, j]<1000, j] <- 0
+}
+
+```
+
+
+```{r echo = FALSE, eval = FALSE}
+#Now i can merget to annontated file and bring in tox data. 
+
+df3$mz<-round(df3$mz,5)
+df3$rt <- round(df3$rt, 1)
+df3$featureid<-as.character(paste(df3$mz,df3$rt,sep = "-"))
+
+
+#import gss data to merge with 
+Stage5_gss <- read.csv(file = "/Users/jessicatrowbridge/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/FF_non-targeted/ESI_pos/Pos_annotator_17072020/Stage5.csv")
+colnames(Stage5_gss)[6] <- "rt"
+
+
+Stage5_gss$mz<-round(Stage5_gss$mz,5)
+Stage5_gss$rt<-round(Stage5_gss$rt,1)
+Stage5_gss$featureid <- as.character(paste(Stage5_gss$mz,Stage5_gss$rt,sep = "-"))
+
+#import SSI features database with tox data: 
+ssi_database <- read.csv(file = "~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/Chemicals_of_Interest_DB/WWBC_MS_database_6.24.20.csv")
+
+
+
+#combine Stage5_gss with SSI_database
+names(Stage5_gss)[names(Stage5_gss)=="chemical_ID"]<-"DTXSID"
+names(Stage5_gss)[names(Stage5_gss)=="Name"]<-"Compound"
+
+###Merge df2 with annotation output (stage 5) and detection frequency
+# setwd("D:/MYBOOK/Silent Spring Institute/WWBC/Nurses/GSS_processing/Results/MSMS_selection/ESI_pos")
+
+colnames(Stage5_gss)
+
+annotation<-Stage5_gss[,c("featureid","DTXSID","Confidence","score","mz","rt","MatchCategory","theoretical.mz",
+                          "delta_ppm","Compound","Formula","MonoisotopicMass","Adduct")]
+annotation$mz<-round(annotation$mz,5)
+annotation$rt <- round(annotation$rt,1)
+# annotation<-filter(annotation, Confidence>0)
+
+
+
+###Merge with source and tox data
+WWBC_MS_library<-ssi_database[,c(2:3,9:30)]
+WWBC_MS_library<-WWBC_MS_library[!(is.na(WWBC_MS_library$DTXSID)),]
+
+annotation_df<-merge(annotation,WWBC_MS_library,by="DTXSID")
+
+select_df <- merge(df3, annotation_df, by = "featureid")
+
+table(select_df$Confidence) #0 confidence. 
+
+
+```
+
+```{r echo=FALSE, eval=FALSE}
+
+
+
+#merge with SSI tox database by Chemical ID
+
+test <- merge(x= Stage5_gss, y= ssi_database, by.x = "chemical_ID", by.y= "DTXSID", )
+
+
+
+table(select_df$Confidence)
+
+#Required criteria: present in at least 3 participants at time 1. 
+
+#filter by 
+# Confidence >= 1
+# diff_v1.3 ==TRUE
+# test <- full_df%>%
+#   filter(diff_v1.3 =="TRUE", 
+#          Confidence>0
+#          )
+
+
+# write.csv(select_df, "list_matched_POSfeaturesFF17072020.csv")
+```
+
+
+
+
+
+#1. compare the cv and mean at visit 1 vs vist 3.
+and begin dropping fetures that don't meet your criteria. 
+first that T1 is not significantly larger than T3.           
+
+
+
+# CRITERIA 1: compound is measured at visit 1 and observed in at least 3 participants
+first we want to select those compounds that are present in sample 1. 
+using data in the long format, where each rel concentration has its own row. we want to group so that I'm only comparing the rel concentrations for the same chemical (MZ) and across the 3 time points. 
+I believe this is then group_by(X) just in case Mz had multiple hits with the same mz?
+
+
+
+
+

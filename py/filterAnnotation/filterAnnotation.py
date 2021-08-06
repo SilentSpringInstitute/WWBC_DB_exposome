@@ -133,8 +133,6 @@ class filterAnnotation:
         elif not name_col in self.l_colname:
             print("ERROR colname: %s"%(name_col))
             return l_work
-        
-        
 
         i = 0
         imax = len(l_work)
@@ -145,7 +143,6 @@ class filterAnnotation:
                         del l_work[i]
                         imax = imax - 1
                         continue                    
-                
                 else:
                     if self.d_filtered[l_work[i]][name_col] != value:
                         del l_work[i]
