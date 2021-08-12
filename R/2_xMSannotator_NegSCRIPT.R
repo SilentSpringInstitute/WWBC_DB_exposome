@@ -1,11 +1,11 @@
 ####R script for annotation of m/z features processed via xcms
 ## INSTALL xMSannotator
-# install.packages(c('BiocManager','data.table','digest'))
-# remotes::install_github('omegahat/XMLSchema', force = TRUE)
-# remotes::install_github('cran/SSOAP')
-# BiocManager::install(c("SSOAP","KEGGREST","pcaMethods","Rdisop","GO.db","matrixStats","WGCNA"))
-# devtools::install_github("yufree/xMSannotator")
-# BiocManager::install("limma")
+install.packages(c('BiocManager','data.table','digest'))
+remotes::install_github('omegahat/XMLSchema', force = TRUE)
+remotes::install_github('cran/SSOAP')
+BiocManager::install(c("SSOAP","KEGGREST","pcaMethods","Rdisop","GO.db","matrixStats","WGCNA"))
+devtools::install_github("yufree/xMSannotator")
+BiocManager::install("limma")
 
 
 library(xMSannotator)
@@ -14,11 +14,11 @@ library(xMSannotator)
 # library(tidyverse)
 getwd()
 
-setwd("C:/Users/jesstro")
+#setwd("C:/Users/jesstro")
 ###Upload the xcms-preprocessed files 
 
-dataC <- read.csv("Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/FF_non-targeted/ESI_neg/preprocessing_neg/20210423neg_xset.csv")
-
+#dataC <- read.csv("Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/FF_non-targeted/ESI_neg/preprocessing_neg/20210423neg_xset.csv")
+dataC <- read.csv("/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/results/XCMS/FF_ESI_neg/20210423neg_xset.csv")
 
 df<-dataC[,c(2,5,10:141)] ###Keep only columns: mz, rt and each samples including blank values DIWB
 colnames(df)[2]<-"time"
@@ -41,7 +41,8 @@ mode<-"neg" #ionization mode
 queryadductlist=c("M-H","M-H2O-H","M+Na-2H","M+Cl","M+FA-H") #for negative ionization
 adduct_weights<-cbind.data.frame(Adduct=c("M+H","M-H"),Weight=c(5,5))
 
-outloc<-"C:/Users/jesstro/Desktop/Neg_annotator_20210708/" ##Folder where to save annotation results
+#outloc<-"C:/Users/jesstro/Desktop/Neg_annotator_20210708/" ##Folder where to save annotation results
+outloc<-"/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/results/XCMS/FF_ESI_neg/"
 
 
 ###Upload MS library
@@ -57,7 +58,9 @@ outloc<-"C:/Users/jesstro/Desktop/Neg_annotator_20210708/" ##Folder where to sav
 # colnames(dsstox)
 # customDB<-dsstox
 
-wwbcDB <- read.csv("Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/FF_non-targeted/Code/data_files_csv/WWBC_MS_database_6.30.21_prepForAnotation - WWBC_MS_database_6.30.21_prepForAnotation.csv", header = TRUE, stringsAsFactors = FALSE)
+#wwbcDB <- read.csv("Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/FF_non-targeted/Code/data_files_csv/WWBC_MS_database_6.30.21_prepForAnotation - WWBC_MS_database_6.30.21_prepForAnotation.csv", header = TRUE, stringsAsFactors = FALSE)
+p_DB_to_match = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/results/WWBC_MS_database_6.30.21_prepForAnotation.csv"
+wwbcDB <- read.csv(p_DB_to_match, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
 colnames(wwbcDB)
 wwbcDB <- wwbcDB[, c(3,5,6,11)] ###Keep only columns: DTXSID, chemical name_original, formula_original, and Molweight_cleaned)
 colnames(wwbcDB)
