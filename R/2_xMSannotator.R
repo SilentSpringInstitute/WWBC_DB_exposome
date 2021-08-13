@@ -66,16 +66,16 @@ pr_out = args[2]
 mode = args[3]
 
 ## linux - wsl2
-#p_xset = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/results/XCMS/FF_ESI_neg/xset.csv"
-#mode = "neg"
-#pr_out = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/results/XCMS/FF_ESI_neg"
-#p_DB_to_match = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/results/WWBC_MS_database_4.7.21_prepForAnotation.csv"
+p_xset = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/results/XCMS/FF_ESI_neg/xset.csv"
+mode = "neg"
+pr_out = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/results/XCMS/FF_ESI_neg"
+p_DB_to_match = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/results/WWBC_MS_database_4.7.21_prepForAnotation.csv"
 
 ##windows native
-p_xset = "c://Users/AlexandreBorrel/research/SSI/NTA/results/XCMS/FF_ESI_neg/xset.csv"
-mode = "neg"
-pr_out = "c://Users/AlexandreBorrel/research/SSI/NTA/results/XCMS/FF_ESI_neg"
-p_DB_to_match = "c://Users/AlexandreBorrel/research/SSI/NTA/results/WWBC_MS_database_4.7.21_prepForAnotation.csv"
+#p_xset = "c://Users/AlexandreBorrel/research/SSI/NTA/results/XCMS/FF_ESI_neg/xset.csv"
+#mode = "neg"
+#pr_out = "c://Users/AlexandreBorrel/research/SSI/NTA/results/XCMS/FF_ESI_neg"
+#p_DB_to_match = "c://Users/AlexandreBorrel/research/SSI/NTA/results/WWBC_MS_database_4.7.21_prepForAnotation.csv"
 
 
 
@@ -96,7 +96,7 @@ max_isp=5
 mass_defect_window=0.01
 num_nodes = 2   #number of cores to be used; 2 is recommended for desktop computers due to high memory consumption
 db_name="Custom" #other options: KEGG, LipidMaps, T3DB, HMDB
-#status=NA 
+status=NA 
 num_sets<-3000 #number of sets into which the total number of database entries should be split into;
 
 # ionization criteria depending of mode

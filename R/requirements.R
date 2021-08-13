@@ -1,6 +1,5 @@
 #!/usr/bin/env Rscript
 
-
 if (!requireNamespace("devtools", quietly = TRUE))
   install.packages("devtools")
 if (!requireNamespace("BiocManager", quietly = TRUE))

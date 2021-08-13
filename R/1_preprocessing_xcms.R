@@ -114,8 +114,9 @@ getopqedata<-function(p_samples,
 ################
 
 args <- commandArgs(TRUE)
-pr_row_data = args[1]
-pr_out = args[2]
+pr_row_data_QC = args[1]
+pr_row_data_sample = args[2]
+pr_out = args[3]
 
 pr_row_data_QC = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/FF_raw_data/ESI_neg/QC_neg/"
 pr_row_data_sample = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/FF_raw_data/ESI_neg/SerumQCBK_samples_neg/"
