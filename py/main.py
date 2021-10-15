@@ -3,7 +3,7 @@ from prepForFrag import prepForFrag
 from WWBC_database import WWBC_database, matchChemicals
 from toolbox import pathFolder
 from filterAnnotation import filterAnnotation
-
+from mapAfterFrag import mapAfterFrag
 
 
 # define folder #
@@ -40,49 +40,70 @@ PR_RESULTS = pathFolder.createFolder(PR_ROOT + "results/")
 ## nurse ##
 # pos
 #p_nurse_matched_pos = PR_DATA + "result_NTA_tofilter/List_matched_no_filter_pos_N_FB_07.21_rar.csv"
-p_nurse_matched_pos = PR_DATA + "result_NTA_tofilter/List_matched_no_filter_pos_N_FB_07.21_rar.csv"
+#p_nurse_matched_pos = PR_DATA + "result_NTA_tofilter/List_matched_no_filter_pos_N_FB_07.21_rar.csv"
 
 # neg
-p_nurse_matched_neg = PR_DATA + "result_NTA_tofilter/List_matched_no_filter_neg_FB_07.21.csv"
+#p_nurse_matched_neg = PR_DATA + "result_NTA_tofilter/List_matched_no_filter_neg_FB_07.21.csv"
 
-## FF ##
+#### FF ####
+############
 # neg
-p_ff_matched_neg = PR_DATA + "result_NTA_tofilter/20210716Neg_features_FF_limited_filtered.csv"
+#p_ff_matched_neg = PR_DATA + "result_NTA_tofilter/20210716Neg_features_FF_limited_filtered.csv"
 
 #pos
-p_ff_matched_pos = PR_DATA + "result_NTA_tofilter/20210716POS_features_FF_limited_filtered.csv"
+#p_ff_matched_pos = PR_DATA + "result_NTA_tofilter/20210716POS_features_FF_limited_filtered.csv"
 
 ##
 # filter setting for analysis
-p_filter = PR_DATA + "result_NTA_tofilter/filter_criteria.txt"
+#p_filter = PR_DATA + "result_NTA_tofilter/filter_criteria.txt"
 
 ## NEG mode
-pr_out = pathFolder.createFolder(PR_RESULTS + "forFragNeg/")
-l_p_annotation = [p_nurse_matched_neg, p_ff_matched_neg]#, p_ff_matched_neg, p_ff_matched_pos]
+#pr_out = pathFolder.createFolder(PR_RESULTS + "forFragNeg/")
+#l_p_annotation = [p_nurse_matched_neg, p_ff_matched_neg]
 
-c_prepForFrag = prepForFrag.prepForFrag(l_p_annotation, p_filter, "NEG", pr_out)
-c_prepForFrag.filteredAnnotation()
-c_prepForFrag.mergeAnnotationForFrag()
+#c_prepForFrag = prepForFrag.prepForFrag(l_p_annotation, p_filter, "NEG", pr_out)
+#c_prepForFrag.filteredAnnotation()
+#c_prepForFrag.mergeAnnotationForFrag()
 
 # POS mode
-pr_out = pathFolder.createFolder(PR_RESULTS + "forFragPos/")
-l_p_annotation = [p_nurse_matched_pos, p_ff_matched_pos]#, p_ff_matched_neg, p_ff_matched_pos]
+#pr_out = pathFolder.createFolder(PR_RESULTS + "forFragPos/")
+#l_p_annotation = [p_nurse_matched_pos, p_ff_matched_pos]
 
-c_prepForFrag = prepForFrag.prepForFrag(l_p_annotation, p_filter, "POS", pr_out)
-c_prepForFrag.filteredAnnotation()
-c_prepForFrag.mergeAnnotationForFrag()
+#c_prepForFrag = prepForFrag.prepForFrag(l_p_annotation, p_filter, "POS", pr_out)
+#c_prepForFrag.filteredAnnotation()
+#c_prepForFrag.mergeAnnotationForFrag()
 
-stopHERE
 
-## nurse 
+## nurse ##
+###########
+
 # neg
-p_nurse_matched_neg = PR_DATA + "result_NTA_tofilter/List_matched_no_filter_neg_FB_07.21.csv"
-pr_out = pathFolder.createFolder(PR_RESULTS + "filter_annotation/")
+#p_nurse_matched_neg = PR_DATA + "result_NTA_tofilter/List_matched_no_filter_neg_FB_07.21.csv"
+#pr_out = pathFolder.createFolder(PR_RESULTS + "filter_annotation/")
 
-c_filteria = filterAnnotation.filterAnnotation(p_nurse_matched_neg, p_filter, pr_out)
-c_filteria.loadCriteria()
-c_filteria.filterByCriteriaA()
-c_filteria.removeDuplicateBasedOnCriteriaD()
+#c_filteria = filterAnnotation.filterAnnotation(p_nurse_matched_neg, p_filter, pr_out)
+#c_filteria.loadCriteria()
+#c_filteria.filterByCriteriaA()
+#c_filteria.removeDuplicateBasedOnCriteriaD()
+
+
+
+########### Rematch after frag ################
+###################################################
+pr_out_frag = pathFolder.createFolder(PR_RESULTS + "map_frag_10-8-21/")
+
+p_pos_frag = PR_DATA + "frag_results_10-8-21/node_attributes_table_neg.tsv"
+p_neg_frag = PR_DATA + "frag_results_10-8-21/node_attributes_table_pos1.tsv"
+
+p_combine_for_frag_neg = PR_RESULTS + "forFragNeg/NEG_filter_features_3MW_30deltaRT_NurseFFCombined.csv"
+p_combine_for_frag_pos = PR_RESULTS + "forFragPos/POS_filter_features_3MW_30deltaRT_NurseFFCombined.csv"
+
+c_map = mapAfterFrag.mapAfterFrag(p_pos_frag, p_combine_for_frag_pos, "POS", pr_out_frag)
+c_map.map()
+
+c_map = mapAfterFrag.mapAfterFrag(p_neg_frag, p_combine_for_frag_neg, "NEG", pr_out_frag)
+c_map.map()
+
 
 STOPHEREINMAIN
 from checkPoint import checkTable

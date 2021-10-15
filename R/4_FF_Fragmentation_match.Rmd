@@ -1,0 +1,517 @@
+---
+title: "Fragmentation matching Round 2"
+author: "Jessica Trowbridge"
+date: "10/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyr)
+library(tidyverse)
+library(stringr)
+
+```
+
+## Fragmentation data 
+## POSITIVE MODE
+#try merging with the summary data + SSI DB data instead of the filtered list? 
+
+The following code from Vincent gives one line per consensus (when there are multiple matches to ID. They are separated by a comma which does not allow us to merge the dataset from Junesoo)
+
+```{r}
+###Upload results data from GNPS MS/MS annotation (WWBC database)
+node <- read.csv("~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/2021Fragmentation matching/node_attributes_table_pos1.tsv", header = T, sep = "\t") #Postive Mode
+node$cluster.index<-as.factor(node$cluster.index)
+
+##Unlist chemicals ID
+node$ConsensusID<-as.character(node$ConsensusID)
+node$ConsensusScore<-as.character(node$ConsensusScore)
+node$ConsensusSMILES<-as.character(node$ConsensusSMILES)
+
+#this code is to transform the shape of the dataset to have one line per consensus ID  
+node1<- node %>%   
+  transform(ConsensusID=strsplit(ConsensusID,","),
+            ConsensusScore=strsplit(ConsensusScore,","),
+            ConsensusSMILES=strsplit(ConsensusSMILES,",")) %>%
+  unnest(c(ConsensusID, ConsensusScore, ConsensusSMILES))
+
+#in addition this line of code keeps only those with a consensus ID. it removes fragmentation peaks that do not match. 
+
+node1<-node1[,c(1,2,4,5,17:19)]  
+
+#interested in: cluster.index
+# -parent.mass (m/z value)
+# -RT mean
+# -ConsensusScore (how close is the match between experimental MS/MS and in silico MS/MS)
+# -ConsensusSMILES
+# -ConsensusID (DTXSID of the chemical)
+```
+
+## make unique ID with Mass and RT (using 4 sig digits)
+
+```{r}
+node1$mz<-round(node1$parent.mass,1) #parent.mass has 3 sig figs
+```
+
+#Then merge with the list of chemicals that we sent JuneSoo. (this includes both Nurse and FF chemicals for fragmentation)
+## Import list sent to JuneSoo
+
+```{r}
+#data sent for fragmentation. Try Alex's list first then try "by hand"
+suspect_list <- read.csv("~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/2021Fragmentation list to DTSC/POS_filter_features_3MW_30deltaRT_NurseFFCombined.csv",stringsAsFactors = F, header = T) #Postive Mode
+
+# suspect_list <- suspect_list%>%
+#   select(c("featureid", "DTXSID","Compound", "Formula", "population"))
+
+
+#change number of sig figs to match node1 #use MW variable in Alex's combined dataset
+suspect_list$mz3<-round(suspect_list$MW,3) #parent.mass has 3 sig figs
+
+#make a new feature ID variable with MW and RT of fragmentation data
+suspect_list$MW<-round(suspect_list$MW,1)
+
+suspect_list$RT <- round(suspect_list$RT, 1)
+suspect_list$featureid<-as.character(paste(suspect_list$mz3,suspect_list$RT,sep = "-"))
+
+# need to stack the DB_name variables. Have a longer DF. 
+
+suspect_list <- suspect_list %>% 
+    mutate(DB_name_new = strsplit(as.character(DB_name), ";")) %>% 
+    unnest(DB_name_new)
+
+```
+
+## merge lists 
+
+```{r}
+match_mz <- merge(node1, suspect_list, by.x = "mz", by.y = "MW", all.x = TRUE)
+
+#when include RT, no_matches, the differences are slight, but they don't match up 
+
+# match_feature_id <- merge(node1, suspect_list, by= "featureid") 
+
+```
+
+
+## Flag matched and non-matched by DTXSID
+```{r}
+#DB_name = DTXSID
+#select the first DB_name of a string to identify confirmed match or not. 
+
+
+match_mz <- match_mz%>%
+  mutate(confirmed_match = ifelse(DB_name_new==ConsensusID, 1, ifelse(is.na(DB_name), 3,0)),
+         new_chemical_nomatch = ifelse( is.na(DB_name), 1, 0), 
+         unknown_match = ifelse(is.na(DB_name) == "unknown", 1, 0))
+
+
+#detect those with only C+H (not likely to be read with LC)
+# str_extract(match_mz$Formula,"^C\\d+H\\d+$")
+
+match_mz <- match_mz %>%
+  mutate(CH_only = ifelse(str_detect(match_mz$formula_cleaned,"^C\\d+H\\d+$") == TRUE, 1,0))
+
+table(match_mz$confirmed_match) #0 is no match, 1 confirmed match N = 32, 
+
+table(match_mz$new_chemical_nomatch) #527 with new potential chemical 
+
+tapply(factor(match_mz$confirmed_match), match_mz$ESI, table) #ESI = population
+
+table(match_mz$unknown_match) #30 chemicals were newly identified
+
+
+tapply(factor(match_mz$unknown_match), match_mz$ESI, table)
+
+
+
+unique_mzrt_pos <- match_mz %>%
+  group_by(mz)%>%
+  summarise(count=n_distinct(ConsensusID))
+
+# write.csv(unique_mzrt_neg, "2020_unique_mzrt_neg.csv")
+
+
+# write.csv(unique_mzrt, "2020_unique_mzrt_pos.csv")
+
+
+# write.csv(match_mz, "2020_12_04selected_features_and_matched_fragmentation_POS.csv")
+```
+
+#Merge the fragmentation data with the summary statistics calculated previously
+```{r}
+
+
+#merge with features identified by fragmentation by featureid. 
+# pos_candidates$mz<-round(pos_candidates$mz,3) #p
+pos_candidates <- read.csv(file = "~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/2021Fragmentation list to DTSC/raw data for selection/20210716POS_features_FF_limited.csv", stringsAsFactors = FALSE)
+
+# pos_candidates <- pos_candidates%>%
+#   select(2:50)
+
+pos_candidates$mz<-round(pos_candidates$mz,3)
+pos_candidates$rt <- round(pos_candidates$rt, 1)
+pos_candidates$featureid<-as.character(paste(pos_candidates$mz,pos_candidates$rt,sep = "-"))
+
+
+# pos_candidates<-pos_candidates[!duplicated(pos_candidates$featureid),] #maybe I don't want to remove dupes if they have multiple DTXSIDs
+
+
+# pos_candidates<-pos_candidates[!duplicated(pos_candidates$featureid),] #272 features
+
+
+
+
+merged_features <- merge(match_mz, pos_candidates, by = c("featureid"), all.x = TRUE)
+
+# tox_library <- read.csv(file= "~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/FF_non-targeted/Code/data_files_csv/WWBC_MS_database_6.30.21_prepForAnotation - WWBC_MS_database_6.30.21_prepForAnotation.csv", stringsAsFactors = FALSE)
+# 
+# tox_library <- tox_library[ , 2:39]
+# 
+# merged_features <- merge(merged_features, tox_library, by.x = "ConsensusID", by.y = "DB_name", all.x = TRUE)
+# 
+# merged_features<-merged_features[!duplicated(merged_features$ConsensusID),] #21 features. #1 ! confirmed through fragmentation in the positive mode for FF. 
+
+#all above 0.8
+# merged_features <- merged_features %>%
+#   filter(ConsensusScore >0.5) 
+
+
+#NURSE DATA MATCH:
+Nurse_pos_candidates <- read.csv(file = "~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/2021Fragmentation list to DTSC/raw data for selection/20210727List_matched_filtered_for_Frag_Nurse_POS.csv", stringsAsFactors = FALSE)
+
+Nurse_pos_candidates$mz<-round(Nurse_pos_candidates$mz,3)
+Nurse_pos_candidates$rt <- round(Nurse_pos_candidates$time, 1)
+Nurse_pos_candidates$featureid<-as.character(paste(Nurse_pos_candidates$mz,Nurse_pos_candidates$rt,sep = "-"))
+
+
+# Nurse_pos_candidates<-Nursepos_candidates[!duplicated(pos_candidates$featureid),] #maybe I don't want to remove dupes if they have multiple DTXSIDs
+
+
+# pos_candidates<-pos_candidates[!duplicated(pos_candidates$featureid),] #272 features
+
+
+
+
+NURSE_merged_features <- merge(match_mz, Nurse_pos_candidates, by = c("featureid"), all.x = TRUE)
+
+
+
+# #filter out the nurses.
+# merged_features <- 
+#   merged_features %>%
+#   filter(population!="nurses")
+# pos_candidates<-pos_candidates[!duplicated(pos_candidates$featureid),] 
+
+#81 firefighter features with unique ConsensusID
+
+# #do with lim_pos that has summary stats and tox data. 
+# lim_pos <- read.csv(file = "/Users/trowbridgej/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/FF_non-targeted/Code/20210512Pos_features_FF_limited.csv")
+# 
+# merged_features_lim <- merge(match_mz, lim_pos, by.x = "ConsensusID", by.y = "DTXSID")
+
+write.csv(merged_features, file = "~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/2021Fragmentation matching/20211007_FFConfirmedfeaturesfrag_pos.csv")
+write.csv(NURSE_merged_features, file = "~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/2021Fragmentation matching/20211007_NURSEConfirmedfeaturesfrag_pos.csv")
+```
+
+# how many have a df below 90%
+```{r}
+table(merged_features$df_v1<90) #none have DF <50%
+  
+
+```
+
+
+# Criteria: TO UPDATE 10/07
+```{r, eval = FALSE}
+
+ merged_features<- merged_features%>%
+ mutate(rt_difference = abs(time-RTMean),
+        time_dif_flag <- ifelse(rt_difference <40, 1, 0), #filter to keep 1's
+        absMED12 = abs(med_diff1v2), 
+        absDF12 = abs(df1v2_difference),
+        absMED13 = abs(med_diff1v3),
+        absDF13 = abs(df1v3_difference),
+        sigdif1v2 = ifelse(conc_p_V2 < 0.1, 1, 0), 
+        sigdif1v3 = ifelse(conc_p < 0.1, 1, 0),
+        df_dif1v2 = ifelse(absDF12 !=0, 1, 0), 
+        df_dif1v3 = ifelse(absDF13 != 0, 1,0))
+ 
+
+
+
+merged_features$bc_chem_flag <- round(rowSums(merged_features[ , c("E2Up_bin", "ERactive_bin", "P4Up_bin", "pesticidemammarytumors_bin", "MC")], na.rm = TRUE),0)
+
+
+merged_features <- merged_features%>%
+  mutate(PFAS1 = ifelse(PFAS >=1, 1, NA))
+merged_features$FRs <- as.numeric(merged_features$FRs)
+
+merged_features$chem_flag <- rowSums(merged_features[ , c("nitroPAH_bin", "PFAS1",  "FRs")], na.rm = TRUE)                                        
+
+merged_features  <- merged_features %>%
+  mutate(has_fun= ifelse(str_detect(Formula.x,"F") == TRUE, "1", ifelse(str_detect(Formula.x,"Cl") == TRUE,"1", ifelse(str_detect(Formula.x,"Br") == TRUE, "1", 0))),
+         fun_group = ifelse(str_detect(Formula.x,"F") == TRUE, "F", ifelse(str_detect(Formula.x,"Cl") == TRUE,"Cl", ifelse(str_detect(Formula.x,"Br") == TRUE, "Br", 0)))
+        )
+
+# merged_features <- merged_features %>%
+#   mutate(sigdif= ifelse(sigdif1v2==1|sigdif1v3==1,1,0), 
+#          DF_dif = ifelse(df_dif1v2 ==1|sigdif1v3==1,1,0)
+#          ) 
+
+merged_features$flag_sums <- rowSums(merged_features[ ,c("sigdif1v2", "sigdif1v3","df_dif1v2","df_dif1v3","chem_flag", "chem_flag", "bc_chem_flag")], na.rm = TRUE)   
+
+
+merged_features <- merged_features %>%
+  mutate(MSMS_name = Compound.y)
+
+
+#merge Pos list with OPERA data downloaded from EPA tox
+
+tox_d_pos <- read.csv("data for analysis/Comptox_OPERA_frag_POS.csv")
+
+
+merged_features <- merge(merged_features, tox_d_pos, by.x = "ConsensusID", by.y = "DTXSID")
+# write.csv(merged_features, file = "FF_framented_features_with_toxdata_stats2021_02_18POS.csv")
+
+```
+
+
+
+# NEGATIVE MODE
+
+
+
+```{r}
+###Upload results data from GNPS MS/MS annotation (WWBC database)
+node_neg <- read.csv("~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/2021Fragmentation matching/node_attributes_table_neg.tsv", header = T, sep = "\t") #Negative Mode
+node_neg$cluster.index<-as.factor(node_neg$cluster.index)
+
+##Unlist chemicals ID
+node_neg$ConsensusID<-as.character(node_neg$ConsensusID)
+node_neg$ConsensusScore<-as.character(node_neg$ConsensusScore)
+node_neg$ConsensusSMILES<-as.character(node_neg$ConsensusSMILES)
+
+
+
+#this code is to transform the shape of the dataset to have one line per consensus ID  
+node_neg1<- node_neg %>%   
+  transform(ConsensusID=strsplit(ConsensusID,","),
+            ConsensusScore=strsplit(ConsensusScore,","),
+            ConsensusSMILES=strsplit(ConsensusSMILES,",")) %>%
+  unnest(c(ConsensusID, ConsensusScore, ConsensusSMILES))
+
+#in addition this line of code keeps only those with a consensus ID. it removes fragmentation peaks that do not match. 
+
+node_neg1<-node_neg1[,c(1,2,4,5,17:19)]  
+
+#interested in: cluster.index
+# -parent.mass (m/z value)
+# -RT mean
+# -ConsensusScore (how close is the match between experimental MS/MS and in silico MS/MS)
+# -ConsensusSMILES
+# -ConsensusID (DTXSID of the chemical)
+```
+
+## make unique ID with Mass and RT (using 1 sig digits) 
+more digits and there is no matching
+
+```{r}
+node_neg1$mz3<-abs(round(node_neg1$parent.mass,3)) #parent.mass has 3 sig figs
+node_neg1$mz<-abs(round(node_neg1$parent.mass,1)) #parent.mass has 3 sig figs
+
+```
+
+#Merge with the list of chemicals that we sent JuneSoo. (this includes both Nurse and FF chemicals for fragmentation)
+## Import list sent to JuneSoo
+
+```{r}
+suspect_list_neg <- read.csv("~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/2021Fragmentation list to DTSC/NEG_filter_features_3MW_30deltaRT_NurseFFCombined.csv", header = T) #Negative
+
+#change number of sig figs to match node1
+suspect_list_neg$MW3 <- round(suspect_list_neg$MW, 3)
+suspect_list_neg$MW<-round(suspect_list_neg$MW,1)
+suspect_list_neg$RT <- round(suspect_list_neg$RT, 1)
+suspect_list_neg$featureid<-as.character(paste(suspect_list_neg$MW3,suspect_list_neg$RT,sep = "-"))
+
+
+# need to stack the DB_name variables. Have a longer DF. 
+
+suspect_list_neg <- suspect_list_neg %>% 
+    mutate(DB_name_new = strsplit(as.character(DB_name), ";")) %>% 
+    unnest(DB_name_new)
+
+
+#combine temp_parent_id with the ids from dat and add to test_df
+
+
+
+```
+
+## merge lists 
+
+```{r}
+head(suspect_list_neg$MW)
+head(node_neg1$mz)
+
+table(suspect_list_neg$MW %in% node_neg1$mz)
+
+match_mz_neg <- merge(node_neg1, suspect_list_neg, by.x = "mz", by.y = "MW")
+
+#when include RT, no_matches, the differences are slight, but they don't match up 
+
+# match_feature_id <- merge(node1, suspect_list, by= "featureid") 
+
+```
+
+
+## Flag matched and non-matched by DTXSID
+```{r}
+match_mz_neg <- match_mz_neg%>%
+  mutate(confirmed_match = ifelse(DB_name_new==ConsensusID, 1, ifelse(is.na(DB_name), 3,0)),
+         new_chemical_nomatch = ifelse( is.na(DB_name), 1, 0), 
+         unknown_match = ifelse(is.na(DB_name) == "unknown", 1, 0))
+
+
+
+
+#select those that only have C+H
+# str_extract(match_mz_neg$Formula,"^C\\d+H\\d+$")
+
+match_mz_neg <- match_mz_neg %>%
+  mutate(CH_only = ifelse(str_detect(match_mz_neg$formula_cleaned,"^C\\d+H\\d+$") == TRUE, 1,0))
+
+table(match_mz_neg$confirmed_match) # 0 is no match, 1 is confirmed match (n=85). 2 is new chemical. 
+
+tapply(factor(match_mz_neg$confirmed_match), match_mz_neg$ESI, table)
+
+
+# write.csv(match_mz_neg, "2020_12_04selected_features_and_matched_fragmentation_NEG.csv")
+```
+
+
+```{r}
+
+
+unique_mzrt_neg <- match_mz_neg %>%
+  group_by(mz, confirmed_match)%>%
+  summarise(count=n_distinct(ConsensusID))
+
+# write.csv(unique_mzrt_neg, "2020_unique_mzrt_neg.csv")
+
+```
+
+```{r, eval = FALSE}
+# #do with lim_pos that has summary stats and tox data. 
+# lim_neg <- read.csv(file = "/Users/trowbridgej/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/FF_non-targeted/Code/20210511Neg_features_FF_limited.csv")
+# 
+# merged_features_limneg <- merge(match_mz_neg, lim_neg, by.x = "ConsensusID", by.y = "DTXSID")
+# 
+# write.csv(merged_features_limneg, file = "/Users/trowbridgej/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/FF_non-targeted/ESI_neg/20210513_confirmedfeaturesfrag_neg.csv")
+
+```
+
+# Merge the fragmentation data with the summary statistics calculated previously
+```{r, eval = FALSE}
+# 
+# neg_candidates <- read.csv(file = "~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/2021Fragmentation list to DTSC/raw data for selection/20210716Neg_features_FF_limited.csv", stringsAsFactors = FALSE)
+# #merge with features identified by fragmentation by featureid. 
+# 
+# 
+# neg_candidates<-neg_candidates[!duplicated(neg_candidates$featureid),] 
+# 
+# #merge
+# merged_features_neg <- merge(match_mz_neg, neg_candidates, by = "featureid", all.x = TRUE)
+
+```
+
+# Merge with Tox library loaded when ran code in positive mode
+
+```{r}
+tox_library <- read.csv(file= "~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/FF_non-targeted/Code/data_files_csv/WWBC_MS_database_6.30.21_prepForAnotation - WWBC_MS_database_6.30.21_prepForAnotation.csv")
+# 
+# 
+# tox_library <- tox_library[ , 2:31]
+
+merged_features_test <- merge(match_mz_neg, tox_library, by.x = "ConsensusID", by.y = "DTXSID", all.x = TRUE) #use names for Compound.y
+
+merged_features_neg<-merged_features_neg[!duplicated(merged_features_neg$ConsensusID),] #126 features
+
+
+merged_features_neg <- merged_features_neg %>%
+  filter(ConsensusScore >0.5) #63 features
+
+#filter out the nurses.
+merged_features_neg <- merged_features_neg %>%
+  filter(population!="nurses")
+# write.csv(merged_features_neg, file = "NEGframented_features_with_summary_stats2020_02.csv")
+```
+
+#apply selection criteria
+```{r}
+
+merged_features_neg <- merged_features_neg%>%
+ mutate(RT_difference = abs(time - RTMean), 
+        RT_flag = ifelse(RT_difference >40, 0,1), #filter to keep 1's
+        absMED12 = abs(med_diff1v2), 
+         absDF12 = abs(df1v2_difference),
+        absMED13 = abs(med_diff1v3),
+        absDF13 = abs(df1v3_difference),
+        sigdif1v2 = ifelse(conc_p_V2 <= 0.1, 1, 0), 
+        sigdif1v3 = ifelse(conc_p <= 0.1, 1, 0), 
+        df_dif1v2 = ifelse(absDF12 !=0, 1, 0), 
+        df_dif1v3 = ifelse(absDF13 != 0, 1,0))
+ 
+
+
+merged_features_neg$bc_chem_flag <- rowSums(merged_features_neg[ , c("E2Up_bin", "ERactive_bin", "P4Up_bin", "pesticidemammarytumors_bin", "MC")], na.rm = TRUE)
+
+merged_features_neg <- merged_features_neg%>%
+  mutate(PFAS = ifelse(PFAS ==1, 1, NA))
+
+# merged_features_neg$PFAS <- as.numeric(merged_features_neg$PFAS)
+merged_features_neg$FRs <- as.numeric(merged_features_neg$FRs)
+
+merged_features_neg$chem_flag <- rowSums(merged_features_neg[ , c("nitroPAH_bin", "PFAS",  "FRs")], na.rm = TRUE)                                        
+       
+merged_features_neg  <- merged_features_neg %>%
+  mutate(has_fun= ifelse(str_detect(Formula.x,"F") == TRUE, "1", ifelse(str_detect(Formula.x,"Cl") == TRUE,"1", ifelse(str_detect(Formula.x,"Br") == TRUE, "1", 0))),
+         fun_group = ifelse(str_detect(Formula.x,"F") == TRUE, "F", ifelse(str_detect(Formula.x,"Cl") == TRUE,"Cl", ifelse(str_detect(Formula.x,"Br") == TRUE, "Br", 0)))
+        )
+
+
+merged_features_neg <- merged_features_neg %>%
+  mutate(sigdif= ifelse(sigdif1v2==1|sigdif1v3==1,1,0))
+
+merged_features_neg$flag_sums <- rowSums(merged_features_neg[ ,c("sigdif1v2", "sigdif1v3", "df_dif1v2","df_dif1v3", "chem_flag", "bc_chem_flag")], na.rm = TRUE)
+
+merged_features_neg <- merged_features_neg %>%
+  mutate(MSMS_name = Compound.y)
+#merge Pos list with OPERA data downloaded from EPA tox
+
+tox_d_neg <- read.csv("data for analysis/Comptox_OPERA_frag_neg.csv")
+
+
+merged_features_neg <- merge(merged_features_neg, tox_d_neg, by.x = "ConsensusID", by.y = "DTXSID")
+
+# write.csv(merged_features_neg, file =  "FF_framented_features_with_summary_stats2021_02_16_NEG.csv")
+
+#do with lim_pos that has summary stats and tox data. 
+lim_pos <- read.csv(file = "/Users/trowbridgej/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/FF_non-targeted/Code/20210512Pos_features_FF_limited.csv")
+
+merged_features_lim <- merge(match_mz, lim_pos, by.x = "ConsensusID", by.y = "DTXSID")
+
+write.csv(merged_features_lim, file = "/Users/trowbridgej/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/FF_non-targeted/ESI_pos/20210513_confirmedfeaturesfrag_pos.csv")
+
+```
+
+```{r, eval=FALSE}
+# neg_feat_summ <- read.csv(file = "NEGframented_features_with_summary_stats1.csv", stringsAsFactors = FALSE)
+# 
+# pos_feat_summ <- read.csv(file= "POSframented_features_with_summary_stats1.csv", stringsAsFactors = FALSE)
+
+
+
+
+```
+
