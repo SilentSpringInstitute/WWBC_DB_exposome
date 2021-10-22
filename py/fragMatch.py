@@ -1,6 +1,6 @@
 from os import path
 from toolbox import pathFolder, toolbox
-
+import CompDesc
 
 PR_ROOT = path.abspath("../../") + "/"
 PR_DATA = PR_ROOT + "data/"
@@ -16,12 +16,19 @@ def fragMatch(p_frag_output, p_db, p_original_db, digit_mass, mode, pr_out, delt
     l_d_frag_output = toolbox.loadMatrixToList(p_frag_output)
     l_d_db = toolbox.loadMatrixToList(p_db, sep = ",")
 
+    ### Load the original DB for SMILES access
+    d_original_db = toolbox.loadMatrix(p_original_db)
+
     # frag results
     # format MW with digit and split dtx
     for d_frag_output in l_d_frag_output:
         d_frag_output["parent.mass"] = round(abs(float(d_frag_output["parent.mass"])) + delta_mass, digit_mass)
         d_frag_output["RTMean"] = round(float(d_frag_output["RTMean"]), 1)
         d_frag_output["ConsensusID"] = d_frag_output["ConsensusID"].split(",")
+
+        # split SMILES
+        d_frag_output["ConsensusSMILES"] = d_frag_output["ConsensusSMILES"].split(",")
+
 
     # database
     # define feature id, split DTXSID, format MW
@@ -36,6 +43,14 @@ def fragMatch(p_frag_output, p_db, p_original_db, digit_mass, mode, pr_out, delt
 
         # format list name
         d_db["name"] = d_db["name"].split(";")
+
+        d_db["SMILES"] = []
+        # map on DB
+        for ID in d_original_db.keys():
+            if d_original_db[ID]["DB_name"] in d_db["DB_name"]:
+                d_db["SMILES"].append(d_original_db[ID]["SMILES_cleaned"])
+
+        d_db["ESI"] = d_db["ESI"].split(";")
 
     d_merge_mass = {}
     # merge DB on frag results
@@ -65,7 +80,6 @@ def fragMatch(p_frag_output, p_db, p_original_db, digit_mass, mode, pr_out, delt
                 if not d_frag_output in d_merge_mass[MW_db]["frag_result"]:
                     d_merge_mass[MW_db]["frag_result"].append(d_frag_output) 
                 
-
     
     # confirm match with DTXID
     #DB_name_new==ConsensusID -> confirmed
@@ -85,14 +99,27 @@ def fragMatch(p_frag_output, p_db, p_original_db, digit_mass, mode, pr_out, delt
         l_feature_id =  [d_db["featureid"] for d_db in d_merge_mass[MW_matched]["DB"]]
         l_feature_id = list(set([item.replace("--", ",") for sublist in l_feature_id for item in sublist if item != ""])) 
 
+        l_smi_DB = [d_db["SMILES"] for d_db in d_merge_mass[MW_matched]["DB"]]
+        l_smi_DB = list(set([item for sublist in l_smi_DB for item in sublist if item != ""]))
+
+        l_smi_consensus = [d_db["ConsensusSMILES"] for d_db in d_merge_mass[MW_matched]["frag_result"]]
+        l_smi_consensus = list(set([item for sublist in l_smi_consensus for item in sublist if item != ""]))
+
+        l_ESI = [d_db["ESI"] for d_db in d_merge_mass[MW_matched]["DB"]]
+        l_ESI = list(set([item for sublist in l_ESI for item in sublist if item != ""]))
+
         d_merge_mass[MW_matched]["l_dtx_consensus"] = l_dtx_consensus
         d_merge_mass[MW_matched]["l_dtx_DB"] = l_dtx_DB
         d_merge_mass[MW_matched]["l_name_DB"] = l_db_name
         d_merge_mass[MW_matched]["l_feature_id"] = l_feature_id
+        d_merge_mass[MW_matched]["l_smi_db"] = l_smi_DB
+        d_merge_mass[MW_matched]["l_smi_consensus"] = l_smi_consensus
+        d_merge_mass[MW_matched]["ESI"] = l_ESI
 
         # find intersept
         l_inter = list(set(l_dtx_DB) & set(l_dtx_consensus))
-        
+        l_inter = list(set(l_inter))
+
         if l_dtx_DB == [] and l_dtx_consensus != []:
             d_merge_mass[MW_matched]["match"] = "Unknown - no chemical in DB"
             d_merge_mass[MW_matched]["list match"] = []
@@ -100,26 +127,52 @@ def fragMatch(p_frag_output, p_db, p_original_db, digit_mass, mode, pr_out, delt
             d_merge_mass[MW_matched]["match"] = "No match in frag"
             d_merge_mass[MW_matched]["list match"] = []
         elif l_inter == []:
-             d_merge_mass[MW_matched]["match"] = "No match intercept"
-             d_merge_mass[MW_matched]["list match"] = []
+            # need to check 
+            # check SMILES matching
+            flag_match = 0
+            for smi_db in d_merge_mass[MW_matched]["l_smi_db"]:
+                
+                if flag_match == 1.0:
+                    break
+                
+                c_smidb = CompDesc.CompDesc(smi_db, "")
+                c_smidb.prepChem()
+                c_smidb.computeFP("MACCS")
+                
+                for smi_consensus in d_merge_mass[MW_matched]["l_smi_consensus"]:
+                    c_smi_consensus = CompDesc.CompDesc(smi_consensus, "")
+                    c_smi_consensus.prepChem()
+                    c_smi_consensus.computeFP("MACCS")
+                    
+                    tanimoto_match = c_smidb.computeSimilarityFP(c_smi_consensus, "MACCS", "Tanimoto")
+                    print(smi_db, smi_consensus)
+                    print(tanimoto_match)
+                    if tanimoto_match == 1.0:
+                        d_merge_mass[MW_matched]["match"] = "Matched with SMILES"
+                        d_merge_mass[MW_matched]["list match"] = [smi_db, smi_consensus]
+                        matched = matched + 1
+                        flag_match = 1
+                        break
+
+            if flag_match == 0.0:
+                d_merge_mass[MW_matched]["match"] = "No match intercept with DTXSID or SMILES"
+                d_merge_mass[MW_matched]["list match"] = []
+        
         else:
-             d_merge_mass[MW_matched]["match"] = "Matched with DTXSID"
-             d_merge_mass[MW_matched]["list match"] = l_inter
-             matched = matched + len(l_inter)
+            d_merge_mass[MW_matched]["match"] = "Matched with DTXSID"
+            d_merge_mass[MW_matched]["list match"] = l_inter
+            matched = matched + len(l_inter)
 
     print("Mode %s\nFor %s mass digit\n%s matches\n"%(mode, digit_mass, matched))
-    
-    #### main in the futur
-    # add mapping with the SMILES
-    #d_original_db = toolbox.loadMatrix(p_original_db)
+
 
 
     p_filout = "%s%s_Digit-%s_deltaMass-%s.csv"%(pr_out, mode, digit_mass, delta_mass)
 
     filout = open(p_filout, "w")
-    filout.write("MW_matched\tDTXID in DB\tName in DB\tConsensus DTXID\tfeatureid\tDTXSID matched\tMatch\n")
+    filout.write("MW_matched\tDTXID in DB\tName in DB\tConsensus DTXID\tfeatureid\tDTXSID matched\tMatch\tESI\n")
     for MW_matched in d_merge_mass.keys():
-        filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(MW_matched, ";".join(d_merge_mass[MW_matched]["l_dtx_DB"]), ";".join(d_merge_mass[MW_matched]["l_name_DB"]), ";".join(d_merge_mass[MW_matched]["l_dtx_consensus"]), ";".join(d_merge_mass[MW_matched]["l_feature_id"]),  ";".join(d_merge_mass[MW_matched]["list match"]), d_merge_mass[MW_matched]["match"]))
+        filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(MW_matched, ";".join(d_merge_mass[MW_matched]["l_dtx_DB"]), ";".join(d_merge_mass[MW_matched]["l_name_DB"]), ";".join(d_merge_mass[MW_matched]["l_dtx_consensus"]), ";".join(d_merge_mass[MW_matched]["l_feature_id"]),  ";".join(d_merge_mass[MW_matched]["list match"]), d_merge_mass[MW_matched]["match"], ";".join(d_merge_mass[MW_matched]["ESI"])))
     filout.close()
 
 
@@ -168,12 +221,11 @@ def checkResult(p_jess, p_alex):
 pr_out = pathFolder.createFolder(PR_RESULTS + "fragMatch/")
 p_output_frag_pos = PR_DATA + "resultFrag10-2021/node_attributes_table_pos1.tsv" #~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/2021Fragmentation matching/node_attributes_table_pos1.tsv
 p_db_frag_pos = PR_DATA + "resultFrag10-2021/POS_filter_features_3MW_30deltaRT_NurseFFCombined.csv" #"~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/2021Fragmentation list to DTSC/POS_filter_features_3MW_30deltaRT_NurseFFCombined.csv"
-p_original_DB = PR_RESULTS + "prepDB/WWBC_MS_database_6.30.21_filterMW.csv"
+p_original_DB = PR_RESULTS + "WWBC_MS_database_6.30.21_prepForAnotation.csv"
 
-
-#fragMatch(p_output_frag_pos, p_db_frag_pos, p_original_DB, 1, "Positive", pr_out)
-#fragMatch(p_output_frag_pos, p_db_frag_pos, p_original_DB, 2, "Positive", pr_out)
-#fragMatch(p_output_frag_pos, p_db_frag_pos, p_original_DB, 3, "Positive", pr_out)
+fragMatch(p_output_frag_pos, p_db_frag_pos, p_original_DB, 1, "Positive", pr_out)
+fragMatch(p_output_frag_pos, p_db_frag_pos, p_original_DB, 2, "Positive", pr_out)
+fragMatch(p_output_frag_pos, p_db_frag_pos, p_original_DB, 3, "Positive", pr_out)
 
 p_output_frag_neg = PR_DATA + "resultFrag10-2021/node_attributes_table_neg.tsv" #~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/2021Fragmentation matching/node_attributes_table_pos1.tsv
 p_db_frag_neg = PR_DATA + "resultFrag10-2021/NEG_filter_features_3MW_30deltaRT_NurseFFCombined.csv" #"~/Box/SHE lab/WWBC/Data analysis/Non-targeted analysis/2021Fragmentation list to DTSC/POS_filter_features_3MW_30deltaRT_NurseFFCombined.csv"
@@ -184,10 +236,10 @@ fragMatch(p_output_frag_neg, p_db_frag_neg, p_original_DB, 3, "Negative", pr_out
 
 
 # comparison output
-p_alex = pr_out + "Negative_Digit-3_deltaMass-2.0.csv"
-p_jess = pr_out + "NEG_matched_confirmed_3digits.csv"
+#p_alex = pr_out + "Negative_Digit-3_deltaMass-2.0.csv"
+#p_jess = pr_out + "NEG_matched_confirmed_3digits.csv"
 
-checkResult(p_jess, p_alex)
+#checkResult(p_jess, p_alex)
 
 
 #p_alex = pr_out + "Negative_Digit-2_deltaMass-2.0.csv"

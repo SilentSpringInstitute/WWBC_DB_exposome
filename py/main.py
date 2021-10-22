@@ -4,7 +4,7 @@ from WWBC_database import WWBC_database, matchChemicals
 from toolbox import pathFolder
 from filterAnnotation import filterAnnotation
 from mapAfterFrag import mapAfterFrag
-
+from checkPoint import checkDB
 
 # define folder #
 #################
@@ -26,6 +26,20 @@ PR_RESULTS = pathFolder.createFolder(PR_ROOT + "results/")
 ############################
 #c_db = WWBC_database.WWWBC_database(PR_DATA + "WWBC_MS_database_4.7.21.csv", minMW, maxMW, lipinski_violation, list_chemicals_metabolite, PR_RESULTS, "WWBC_MS_database_6.30.21")
 #c_db.main()
+
+
+## check composition of the DB ###
+##################################
+## to test
+p_DB = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/results/WWBC_MS_database_6.30.21_prepForAnotation.csv"
+p_out = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/results/check/chem_in_DB.txt"
+
+l_check = ["DTXSID1022556", "DTXSID9022601","DTXSID9020116","DTXSID3020910","DTXSID3046742","DTXSID4024983","DTXSID1022845","DTXSID5020364","DTXSID0020365","DTXSID3022877","DTXSID5020364","DTXSID7022883","DTXSID70227388","DTXSID2021735","DTXSID8021480","DTXSID1020562","DTXSID5023035","DTXSID9023049","DTXSID3020625","DTXSID4039657","DTXSID2020634","DTXSID9044299","DTXSID6020648","DTXSID8041032","DTXSID4034150","DTXSID4025371","DTXSID6025438","DTXSID7020760","DTXSID9037664","DTXSID6020804","DTXSID4020822","DTXSID2020892","DTXSID00858942","DTXSID4041070","DTXSID0045703","DTXSID9023413","DTXSID7023431","DTXSID8020541","DTXSID8023135","DTXSID4021185","DTXSID8023557","DTXSID5040910","DTXSID6034186","DTXSID5046354","DTXSID1034187","DTXSID3023631","DTXSID8022371","DTXSID8023688","DTXSID8048288","DTXSID30154863","DTXSID1032278","DTXSID5023742","DTXSID9046023"]
+k_search = "DTXSID"
+
+c_check = checkDB.checkDB(p_DB)
+c_check.searchInDB(k_search, l_check, p_out)
+here
 
 
 # PREP FOR FRAGMENTATION #
