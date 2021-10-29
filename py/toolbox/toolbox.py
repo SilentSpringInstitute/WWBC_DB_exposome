@@ -1,9 +1,10 @@
+import toolbox
 from .DBrequest import DBrequest
 import pandas
 from re import search
 
 
-def loadMatrixToList(pmatrixIn, sep = "\t"):
+def loadMatrixToList(pmatrixIn, sep = "\t", header_out = False):
 
     filin = open(pmatrixIn, "r", encoding="utf8", errors='ignore')
     llinesMat = filin.readlines()
@@ -44,8 +45,10 @@ def loadMatrixToList(pmatrixIn, sep = "\t"):
             j += 1
         l_out.append(dtemp)
         i += 1
-    
-    return l_out
+    if header_out == True:
+        return [l_out, lheaders]
+    else:
+        return l_out
 
 def loadMatrix(pmatrixIn, sep = "\t"):
 
@@ -215,7 +218,7 @@ def mergeDict(l_dict):
     return dout
 
 def searchDTXIDFromSMILES(SMILES_cleaned):
-    cDB = DBrequest.DBrequest()
+    cDB = DBrequest()
     extract_DTXSID = cDB.execCMD("SELECT dsstox_id FROM chemicals WHERE smiles_clean='%s'"%(SMILES_cleaned))
 
     if extract_DTXSID == []:
@@ -229,7 +232,7 @@ def searchDTXIDFromSMILES(SMILES_cleaned):
 
 def searchCASRNFromDTXSID(dtxsid):
 
-    cDB = DBrequest.DBrequest()
+    cDB = DBrequest()
     extract_CASRN = cDB.execCMD("SELECT casn FROM chemicals WHERE dsstox_id='%s'"%(dtxsid))
 
     if extract_CASRN == []:
@@ -271,3 +274,37 @@ def loadExcelSheet(p_excel, name_sheet, k_head):
         i = i + 1
     
     return d_out
+
+
+def manualMapping(p_filToMap, l_dfile_to_map, p_filout):
+    """
+    function used to map new function in a previous table
+    [{"pfile":"", "headertoMap": "", "addCol": ""}]
+    """
+    
+    l_d_filin = loadMatrixToList(p_filToMap, header_out=True, sep = ",")
+    l_header = l_d_filin[1]
+    l_d_filin = l_d_filin[0]
+
+    l_header_add = []
+    for dfile_to_map in l_dfile_to_map:
+        l_header_add.append(dfile_to_map["addCol"])
+        l_dtomap = loadMatrixToList(dfile_to_map["pfile"], sep = ",")
+        for d_filin in l_d_filin:
+            print(d_filin)
+            for d_tomap in l_dtomap:
+                if d_filin["DTXSID"] == d_tomap[dfile_to_map["headertoMap"]]:
+                    d_filin[dfile_to_map["addCol"]] = "1"
+                    break
+            try: d_filin[dfile_to_map["addCol"]]
+            except: d_filin[dfile_to_map["addCol"]] = ""
+    
+    # rewrite the dataset
+    filout = open(p_filout, "w")
+    filout.write("\t".join(l_header) + "\t" + "\t".join(l_header_add) + "\n")
+    for d_filin in l_d_filin:
+        filout.write("%s\t%s\n"%("\t".join([d_filin[h] for h in l_header]), "\t".join([d_filin[h] for h in l_header_add])))
+    filout.close()
+
+
+

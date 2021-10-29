@@ -4,7 +4,7 @@ from os import name, path, getcwd, system, chdir
 if name == "nt":
     PR_BIOTRANSFORMER = "C://Users/aborr/research/PFAS_project/Silent_Spring/BioTransformerJar/biotransformerjar/"
 else:
-    PR_BIOTRANSFORMER = "/mnt/c/Users/AlexandreBorrel/softwares/biotransformerjar/"
+    PR_BIOTRANSFORMER = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/software/biotransformerjar/"
 
 
 ##############

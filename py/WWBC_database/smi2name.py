@@ -18,7 +18,8 @@ def pubchempySmiles2name(smiles):
     
     try: compounds = pubchempy.get_compounds(smiles, namespace='smiles')
     except: return "None"
-    match = compounds[0]
+    try:match = compounds[0]
+    except: return "Noone"
     name = match.iupac_name
     if name == None:
         return "None"

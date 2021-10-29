@@ -1,7 +1,7 @@
 from os import path
 from prepForFrag import prepForFrag
 from WWBC_database import WWBC_database, matchChemicals
-from toolbox import pathFolder
+from toolbox import pathFolder, toolbox
 from filterAnnotation import filterAnnotation
 from mapAfterFrag import mapAfterFrag
 from checkPoint import checkDB
@@ -16,17 +16,32 @@ PR_RESULTS = pathFolder.createFolder(PR_ROOT + "results/")
 ###################
 # may need to be place as in input file
 
-#minMW = 100
-#maxMW = 1000
-#lipinski_violation = 3
-#list_chemicals_metabolite = ["Drug_UCSF_PXYS", "Drug_most comon and haz", "Disinfectant", "FRs", "PFAS", "MC", "MGDev", "ERactive_bin", "E2Up_bin", "P4Up_bin", "pesticidemammarytumors_bin", "nitroPAH_bin", "pellizzari_bin", "phthalate"]
+minMW = 100
+maxMW = 1000
+lipinski_violation = 3
+list_chemicals_metabolite = ["Drug_UCSF_PXYS", "Drug_most comon and haz", "Disinfectant", "FRs", "PFAS", "MC", "MGDev", "ERactive_bin", "E2Up_bin", "P4Up_bin", "pesticidemammarytumors_bin", "nitroPAH_bin", "pellizzari_bin", "phthalate"]
 
 
 #  RUN - prepare database  #
 ############################
-#c_db = WWBC_database.WWWBC_database(PR_DATA + "WWBC_MS_database_4.7.21.csv", minMW, maxMW, lipinski_violation, list_chemicals_metabolite, PR_RESULTS, "WWBC_MS_database_6.30.21")
+## added mapping file for drug in nurse / survey and 
+#l_d_fileToMap = [{"pfile":PR_DATA + "buildDB/UCSF_Haz_Drugs Inventory_FINAL 2_2018_wDTSXIDs.csv", "headertoMap": "DTXSID (CompTox)", "addCol": "UCSF_haz_drug"}, {"pfile":PR_DATA + "buildDB/nurses_otherdrugs_rar_10272021.csv", "headertoMap":"DTSXID (from wwbc database plus other sources)", "addCol": "Survey_drug"}]
+#c_db = WWBC_database.WWBC_database(PR_DATA + "buildDB/WWBC_MS_database_10.28.21.csv", minMW, maxMW, lipinski_violation, list_chemicals_metabolite, PR_RESULTS, l_d_fileToMap, "WWBC_MS_database_10.28.21")
 #c_db.main()
 
+
+# MAP NURSE RESULTS ON MODE FROM MS
+p_filin = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/nurse_drug_selectionRR_10-29-21/all_considered_for_target_N_10_29_21.csv"
+p_filout = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/nurse_drug_selectionRR_10-29-21/all_considered_for_target_N_10_29_21_mappedOnMode.csv"
+
+p_pos = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/nurse_drug_selectionRR_10-29-21/List_matched_no_filter_neg_FB_06.21_rar.csv"
+p_neg = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/nurse_drug_selectionRR_10-29-21/List_matched_no_filter_pos_FB_06.21_rar.csv"
+
+
+d_tomap = [{"pfile":p_pos, "headertoMap": "DB_name", "addCol": "POS mode"},{"pfile":p_neg, "headertoMap": "DB_name", "addCol": "NEG mode"} ]
+toolbox.manualMapping(p_filin, d_tomap, p_filout)
+
+STOPHERE
 
 ## check composition of the DB ###
 ##################################

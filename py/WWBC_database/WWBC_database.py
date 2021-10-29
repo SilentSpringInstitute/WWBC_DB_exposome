@@ -13,9 +13,10 @@ from .prepSMILES import *
 
 
 class WWBC_database:
-    def __init__(self, p_database, minMW, maxMW, lipinski_violation, list_chemicals_metabolite, pr_out, name_DB = ""):
+    def __init__(self, p_database, minMW, maxMW, lipinski_violation, list_chemicals_metabolite, pr_out, l_dpfiletoMap = {}, name_DB = ""):
 
         self.p_database = p_database
+        # define name output
         if name_DB == "":
             name_DB = p_database.split("/")[-1][:-4]
         self.name_DB = name_DB
@@ -24,16 +25,20 @@ class WWBC_database:
         self.maxMW = maxMW
         self.lipinski_violation = lipinski_violation
         self.list_chemicals_metabolite = list_chemicals_metabolite
+        self.l_dpfiletoMap = l_dpfiletoMap # need to have 3 keys pfile, headertoMap, addCol
         self.pr_desc = pathFolder.createFolder(pr_out + "DESC/")
     
     def main(self):
+        """
+        main fuction to prepare the database from the MS db
+        """
         self.loadData()
         self.cleanStructure()
         self.processMW(self.minMW, self.maxMW)
 
         # compute biotransformation by chemicals
         pr_biotransformation = pathFolder.createFolder(self.pr_out + "biotransformer_output/")
-        #self.computeBiotransformation("phaseII", pr_biotransformation)
+        self.computeBiotransformation("phaseII", pr_biotransformation)
 
         # organize by type source
         self.organizeBiotransformationByChemSources(pr_biotransformation,  self.list_chemicals_metabolite)
@@ -41,9 +46,28 @@ class WWBC_database:
         self.fusionDBAndMetabolite()
 
     def loadData(self):
-
+        """
+        Load the MS database and map extra files if provided in the class
+        """
         d_data = toolbox.loadMatrix(self.p_database, ",")
-        #self.d_data ={k: d_data[k] for k in list(d_data)[:100]}
+
+        # Add an extra mapping if provided => mapping will be on the DTXSID
+        if self.l_dpfiletoMap != {}:
+            for d_pfiletoMap in self.l_dpfiletoMap:
+                l_toMap = toolbox.loadMatrixToList(d_pfiletoMap["pfile"], sep = ",")
+                # add to data
+                for chem_id in d_data.keys():
+                    for d_chem_to_update in l_toMap:
+                        if d_chem_to_update[d_pfiletoMap["headertoMap"]] == "-" or d_chem_to_update[d_pfiletoMap["headertoMap"]] == "":
+                            continue
+                        if d_data[chem_id]["DTXSID"] == d_chem_to_update[d_pfiletoMap["headertoMap"]]:
+                            d_data[chem_id][d_pfiletoMap["addCol"]] = "1"
+                            break
+                    try:d_data[chem_id][d_pfiletoMap["addCol"]] 
+                    except:d_data[chem_id][d_pfiletoMap["addCol"]] = ""
+
+
+        #self.d_data ={k: d_data[k] for k in list(d_data)[:200]} # short cut for test
         self.d_data =  d_data      
 
     def cleanStructure(self):
@@ -118,17 +142,18 @@ class WWBC_database:
                 # change the smiles prep based on the new RDKIT update ==> https://github.com/greglandrum/RSC_OpenScience_Standardization_202104/blob/main/MolStandardize%20pieces.ipynb
                 c_chem = CompDesc.CompDesc(self.d_data[l_chem[i]]["SMILES"], self.pr_desc)
                 c_chem.prepChem()
-                if not l_chem[i] in list(self.d_prep.keys()):
-                    self.d_prep[l_chem[i]] = {}
+                
+                try: self.d_prep[l_chem[i]]
+                except: self.d_prep[l_chem[i]] = {}
                 
                 if c_chem.err == 0:
                     # Apply new prep phase
-                    smi_mol_cleaned = prepSMILES.prepSMILES(c_chem.mol)
+                    smi_mol_cleaned = prepSMILES(c_chem.mol)
                     c_chem.smi = smi_mol_cleaned[0]
                     c_chem.mol = smi_mol_cleaned[1]
                     self.d_prep[l_chem[i]]["SMILES_cleaned"] = c_chem.smi
                     self.d_prep[l_chem[i]]["formula"] = Chem.rdMolDescriptors.CalcMolFormula(c_chem.mol)
-                    self.d_prep[l_chem[i]]["name_cleaned"] = smi2name.pubchempySmiles2name(c_chem.smi)
+                    self.d_prep[l_chem[i]]["name_cleaned"] = pubchempySmiles2name(c_chem.smi)
                     
                     # compute only MW not all other descriptor
                     try:MW = molproperty.getExactMolWt(c_chem.mol)
@@ -157,6 +182,9 @@ class WWBC_database:
             filout = open(p_filout, "w")
             filout.write("ID\tDTXSID\tCASRN\tname_original\tformula\tSMILES\tSMILES_cleaned\tname_cleaned\tformula_cleaned\tMolweight_cleaned\t%s\n"%("\t".join(l_prop_data)))
             for chem in self.d_prep.keys():
+                # do not write if the cleaning is not possible (mixture or ion)
+                if self.d_prep[chem]["SMILES_cleaned"] == "":
+                    continue
                 # reformate CAS properly
                 if search("/", self.d_data[chem]["CASRN"]):
                     self.d_data[chem]["CASRN"] = toolbox.searchCASRNFromDTXSID(self.d_data[chem]["DTXSID"])
@@ -169,6 +197,10 @@ class WWBC_database:
                 if self.d_prep[chem]["Molweight_cleaned"] == "":
                     filog.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(self.d_data[chem]["ID"], self.d_data[chem]["DTXSID"],  self.d_data[chem]["CASRN"], self.d_data[chem]["Compound"], self.d_data[chem]["Formula"], self.d_data[chem]["SMILES"], self.d_prep[chem]["SMILES_cleaned"], self.d_prep[chem]["name_cleaned"], self.d_prep[chem]["formula"], self.d_prep[chem]["Molweight_cleaned"], "\t".join(str(self.d_data[chem][k_prop]) for k_prop in l_prop_data)))
             filog.close()
+
+            # Need to reload the file here to change and update d_pred
+            d_prep = toolbox.loadMatrix(p_filout)
+            self.d_prep = d_prep
 
     def computeBiotransformation(self, type_biotransformation, pr_biotransformer):
 
@@ -191,12 +223,12 @@ class WWBC_database:
             c_chem.generateInchiKey()
             if c_chem.err == 1:
                 continue
-            c_biotransformation = Biotransformer.Biotransformer(self.d_prep[chem]["SMILES_cleaned"], c_chem.inchikey, pr_biotransformer)
+            c_biotransformation = Biotransformer(self.d_prep[chem]["SMILES_cleaned"], c_chem.inchikey, pr_biotransformer)
             d_transformation[chem] = c_biotransformation.predBiotransformer(type_biotransformation)
         
     def organizeBiotransformationByChemSources(self, pr_biotransformation, l_chem_classes):
 
-        pr_out = pathFolder.createFolder(self.pr_out + "prepPhaseII/")
+        pr_out = pathFolder.createFolder(self.pr_out + "prepDB/prepPhaseII/")
         self.pr_metabolite = pr_out
         p_filout = pr_out + "PhaseII_metabo_" + self.name_DB + ".csv"
         if path.exists(p_filout):
@@ -211,6 +243,7 @@ class WWBC_database:
             if i % 100 == 0:
                 print(i)
 
+            print(self.d_prep[l_chem[i]])
             for chem_class in l_chem_classes:
                 if self.d_prep[l_chem[i]][chem_class] == "1":
                     SMILES_clean = self.d_prep[l_chem[i]]["SMILES_cleaned"]
@@ -244,7 +277,7 @@ class WWBC_database:
                             if not SMILES_metabo_cleaned in list(d_out.keys()):
                                 d_out[SMILES_metabo_cleaned] = {}
                                 d_out[SMILES_metabo_cleaned] = d_biotransformation[inch]
-                                d_out[SMILES_metabo_cleaned]["name_cleaned"] = smi2name.pubchempySmiles2name(SMILES_metabo_cleaned)
+                                d_out[SMILES_metabo_cleaned]["name_cleaned"] = pubchempySmiles2name(SMILES_metabo_cleaned)
                                 d_out[SMILES_metabo_cleaned]["DTXSID"] = DTXSID
                                 d_out[SMILES_metabo_cleaned]["Precursors"] = []
                                 d_out[SMILES_metabo_cleaned]["List Reaction"] = []
@@ -331,7 +364,7 @@ class WWBC_database:
 
         l_out = []
         l_in = []
-        l_chem = list(self.d_data.keys())
+        l_chem = list(self.d_prep.keys())
         i = 0
         imax = len(l_chem)
         while i < imax:
@@ -352,28 +385,32 @@ class WWBC_database:
 
             i = i + 1
         
-        l_prop_data = list(self.d_data[list(self.d_data.keys())[0]].keys())
+        l_prop_data = list(self.d_prep[list(self.d_prep.keys())[0]].keys())
         l_prop_data.remove("DTXSID")
-        l_prop_data.remove("Compound")
-        l_prop_data.remove("Formula")
+        l_prop_data.remove("name_original")
+        l_prop_data.remove("formula")
         l_prop_data.remove("CASRN")
         l_prop_data.remove("SMILES")
+        l_prop_data.remove("SMILES_cleaned")
+        l_prop_data.remove("name_cleaned")
+        l_prop_data.remove("formula_cleaned")
+        l_prop_data.remove("Molweight_cleaned")
         l_prop_data.remove("ID")
-
 
 
         filout = open(p_filout, "w")
         filout.write("ID\tDTXSID\tCASRN\tname_original\tformula\tSMILES\tSMILES_cleaned\tname_cleaned\tformula_cleaned\tMolweight_cleaned\t%s\n"%("\t".join(l_prop_data)))
         for chem in l_in:
-            filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(self.d_data[chem]["ID"], self.d_data[chem]["DTXSID"],  self.d_data[chem]["CASRN"], self.d_data[chem]["Compound"].replace(" ", ","), self.d_data[chem]["Formula"], self.d_data[chem]["SMILES"], self.d_prep[chem]["SMILES_cleaned"], self.d_prep[chem]["name_cleaned"], self.d_prep[chem]["formula"], self.d_prep[chem]["Molweight_cleaned"], "\t".join(str(self.d_data[chem][k_prop]) for k_prop in l_prop_data)))
+            filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(self.d_prep[chem]["ID"], self.d_prep[chem]["DTXSID"],  self.d_prep[chem]["CASRN"], self.d_prep[chem]["name_original"].replace(" ", ","), self.d_prep[chem]["formula"], self.d_prep[chem]["SMILES"], self.d_prep[chem]["SMILES_cleaned"], self.d_prep[chem]["name_cleaned"], self.d_prep[chem]["formula_cleaned"], self.d_prep[chem]["Molweight_cleaned"], "\t".join(str(self.d_prep[chem][k_prop]) for k_prop in l_prop_data)))
         filout.close()
 
         flog = open(p_flog, "w")
         flog.write("ID\tDTXSID\tCASRN\tname_original\tformula\tSMILES\tSMILES_cleaned\tname_cleaned\tformula_cleaned\tMolweight_cleaned\t%s\n"%("\t".join(l_prop_data)))
         for chem in l_out:
-            flog.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(self.d_data[chem]["ID"], self.d_data[chem]["DTXSID"],  self.d_data[chem]["CASRN"], self.d_data[chem]["Compound"].replace(" ", ","), self.d_data[chem]["Formula"], self.d_data[chem]["SMILES"], self.d_prep[chem]["SMILES_cleaned"], self.d_prep[chem]["name_cleaned"], self.d_prep[chem]["formula"], self.d_prep[chem]["Molweight_cleaned"], "\t".join(str(self.d_data[chem][k_prop]) for k_prop in l_prop_data)))
+            flog.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(self.d_prep[chem]["ID"], self.d_prep[chem]["DTXSID"],  self.d_prep[chem]["CASRN"], self.d_prep[chem]["name_original"].replace(" ", ","), self.d_prep[chem]["formula"], self.d_prep[chem]["SMILES"], self.d_prep[chem]["SMILES_cleaned"], self.d_prep[chem]["name_cleaned"], self.d_prep[chem]["formula_cleaned"], self.d_prep[chem]["Molweight_cleaned"], "\t".join(str(self.d_prep[chem][k_prop]) for k_prop in l_prop_data)))
         flog.close()        
 
+        # reload the output
         self.d_DB_cleaned = toolbox.loadMatrix(p_filout)
 
     def fusionDBAndMetabolite(self):
