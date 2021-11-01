@@ -37,3 +37,5 @@ class mapAfterFrag:
                 if flag == 0:
                         filout.write("%s\t0\t%s\t%s\n"%(consensus_ID, "NA", "NA"))
         filout.close()
+
+        return p_filout

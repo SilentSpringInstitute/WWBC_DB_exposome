@@ -31,30 +31,29 @@ list_chemicals_metabolite = ["Drug_UCSF_PXYS", "Drug_most comon and haz", "Disin
 
 
 # MAP NURSE RESULTS ON MODE FROM MS
-p_filin = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/nurse_drug_selectionRR_10-29-21/all_considered_for_target_N_10_29_21.csv"
-p_filout = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/nurse_drug_selectionRR_10-29-21/all_considered_for_target_N_10_29_21_mappedOnMode.csv"
+#p_filin = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/nurse_drug_selectionRR_10-29-21/all_considered_for_target_N_10_29_21.csv"
+#p_filout = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/nurse_drug_selectionRR_10-29-21/all_considered_for_target_N_10_29_21_mappedOnMode.csv"
 
-p_pos = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/nurse_drug_selectionRR_10-29-21/List_matched_no_filter_neg_FB_06.21_rar.csv"
-p_neg = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/nurse_drug_selectionRR_10-29-21/List_matched_no_filter_pos_FB_06.21_rar.csv"
+#p_pos = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/nurse_drug_selectionRR_10-29-21/List_matched_no_filter_neg_FB_06.21_rar.csv"
+#p_neg = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/nurse_drug_selectionRR_10-29-21/List_matched_no_filter_pos_FB_06.21_rar.csv"
 
 
-d_tomap = [{"pfile":p_pos, "headertoMap": "DB_name", "addCol": "POS mode"},{"pfile":p_neg, "headertoMap": "DB_name", "addCol": "NEG mode"} ]
-toolbox.manualMapping(p_filin, d_tomap, p_filout)
+#d_tomap = [{"pfile":p_pos, "headertoMap": "DB_name", "addCol": "POS mode"},{"pfile":p_neg, "headertoMap": "DB_name", "addCol": "NEG mode"} ]
+#toolbox.manualMapping(p_filin, d_tomap, p_filout)
 
-STOPHERE
+
 
 ## check composition of the DB ###
 ##################################
 ## to test
-p_DB = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/results/WWBC_MS_database_6.30.21_prepForAnotation.csv"
-p_out = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/results/check/chem_in_DB.txt"
+#p_DB = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/results/WWBC_MS_database_6.30.21_prepForAnotation.csv"
+#p_out = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/results/check/chem_in_DB.txt"
 
-l_check = ["DTXSID1022556", "DTXSID9022601","DTXSID9020116","DTXSID3020910","DTXSID3046742","DTXSID4024983","DTXSID1022845","DTXSID5020364","DTXSID0020365","DTXSID3022877","DTXSID5020364","DTXSID7022883","DTXSID70227388","DTXSID2021735","DTXSID8021480","DTXSID1020562","DTXSID5023035","DTXSID9023049","DTXSID3020625","DTXSID4039657","DTXSID2020634","DTXSID9044299","DTXSID6020648","DTXSID8041032","DTXSID4034150","DTXSID4025371","DTXSID6025438","DTXSID7020760","DTXSID9037664","DTXSID6020804","DTXSID4020822","DTXSID2020892","DTXSID00858942","DTXSID4041070","DTXSID0045703","DTXSID9023413","DTXSID7023431","DTXSID8020541","DTXSID8023135","DTXSID4021185","DTXSID8023557","DTXSID5040910","DTXSID6034186","DTXSID5046354","DTXSID1034187","DTXSID3023631","DTXSID8022371","DTXSID8023688","DTXSID8048288","DTXSID30154863","DTXSID1032278","DTXSID5023742","DTXSID9046023"]
-k_search = "DTXSID"
+#l_check = ["DTXSID1022556", "DTXSID9022601","DTXSID9020116","DTXSID3020910","DTXSID3046742","DTXSID4024983","DTXSID1022845","DTXSID5020364","DTXSID0020365","DTXSID3022877","DTXSID5020364","DTXSID7022883","DTXSID70227388","DTXSID2021735","DTXSID8021480","DTXSID1020562","DTXSID5023035","DTXSID9023049","DTXSID3020625","DTXSID4039657","DTXSID2020634","DTXSID9044299","DTXSID6020648","DTXSID8041032","DTXSID4034150","DTXSID4025371","DTXSID6025438","DTXSID7020760","DTXSID9037664","DTXSID6020804","DTXSID4020822","DTXSID2020892","DTXSID00858942","DTXSID4041070","DTXSID0045703","DTXSID9023413","DTXSID7023431","DTXSID8020541","DTXSID8023135","DTXSID4021185","DTXSID8023557","DTXSID5040910","DTXSID6034186","DTXSID5046354","DTXSID1034187","DTXSID3023631","DTXSID8022371","DTXSID8023688","DTXSID8048288","DTXSID30154863","DTXSID1032278","DTXSID5023742","DTXSID9046023"]
+#k_search = "DTXSID"
 
-c_check = checkDB.checkDB(p_DB)
-c_check.searchInDB(k_search, l_check, p_out)
-here
+#c_check = checkDB.checkDB(p_DB)
+#c_check.searchInDB(k_search, l_check, p_out)
 
 
 # PREP FOR FRAGMENTATION #
@@ -119,7 +118,7 @@ here
 
 ########### Rematch after frag ################
 ###################################################
-pr_out_frag = pathFolder.createFolder(PR_RESULTS + "map_frag_10-8-21/")
+pr_out_frag = pathFolder.createFolder(PR_RESULTS + "map_frag_10-28-21/")
 
 p_pos_frag = PR_DATA + "frag_results_10-8-21/node_attributes_table_neg.tsv"
 p_neg_frag = PR_DATA + "frag_results_10-8-21/node_attributes_table_pos1.tsv"
@@ -128,14 +127,18 @@ p_combine_for_frag_neg = PR_RESULTS + "forFragNeg/NEG_filter_features_3MW_30delt
 p_combine_for_frag_pos = PR_RESULTS + "forFragPos/POS_filter_features_3MW_30deltaRT_NurseFFCombined.csv"
 
 c_map = mapAfterFrag.mapAfterFrag(p_pos_frag, p_combine_for_frag_pos, "POS", pr_out_frag)
-c_map.map()
+p_pos = c_map.map()
 
 c_map = mapAfterFrag.mapAfterFrag(p_neg_frag, p_combine_for_frag_neg, "NEG", pr_out_frag)
-c_map.map()
+p_neg = c_map.map()
 
+# check duplicate
+d_pos = toolbox.loadMatrix(p_pos)
+d_neg = toolbox.loadMatrix(p_neg)
 
-STOPHEREINMAIN
-from checkPoint import checkTable
+print(list(set(list(d_pos.keys())) & set(list(d_neg.keys()))))
+
+HERE
 
 # Extract substructure from matches #
 #####################################
