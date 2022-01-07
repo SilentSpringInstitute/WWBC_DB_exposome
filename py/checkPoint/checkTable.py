@@ -14,7 +14,7 @@ class checkTable:
 
     def loadFile(self):
 
-        self.d_table1 = toolbox.loadMatrix(self.p_table1, sep = "\t")
+        self.d_table1 = toolbox.loadMatrix(self.p_table1, sep = ",")
         self.d_table2 = toolbox.loadMatrix(self.p_table2, sep = ",")
 
     def compareCol(self):
@@ -25,6 +25,8 @@ class checkTable:
         l_col_table2 = list(self.d_table2[list(self.d_table2.keys())[0]].keys())
 
         l_inter_col = list(set(l_col_table1) & set(l_col_table2))
+        print("INTERCOL")
+        print(l_inter_col)
 
         self.l_inter_col = l_inter_col
 
@@ -80,8 +82,107 @@ class checkTable:
 
         self.f_log.close()
 
+    def checkDuplicate(self, pfile, col_header, l_merge_col, p_out):
+        
+        if pfile == 2:
+            d_filin = self.d_table2
+        else:
+            d_filin = self.d_table1
+        
+        d_out = {}
+        for chem in d_filin.keys():
+            header = d_filin[chem][col_header]
+            if not header in list(d_out.keys()):
+                d_out[header] = {}
+                for merge_col in l_merge_col:
+                    d_out[header][merge_col] = []
+                    d_out[header]["count"] = 0
 
+            for merge_col in l_merge_col:
+                l_val_col = d_filin[chem][merge_col].split(",")
+                for val_col in l_val_col:
+                    if not val_col in  d_out[header][merge_col]:
+                        d_out[header][merge_col].append(val_col)
+            d_out[header]["count"] = d_out[header]["count"] + 1
+        
+        filout = open(p_out, "w")
+        filout.write("%s\t%s\tCount\n"%(col_header, "\t".join(["merge_" + merge_col for merge_col in l_merge_col])))
+        for h in d_out.keys():
+            filout.write("%s\t%s\t%s\n"%(h,"\t".join([",".join(d_out[h][merge_col]) for merge_col in l_merge_col]), d_out[h]["count"]))
+        filout.close()
     
+
+    def checkDupAndTrackFeatureOrigin(self, pfile, col_header, l_merge_col, l_features_col, d_origin, p_out):
+        
+        
+        if pfile == 2:
+            d_filin = self.d_table2
+        else:
+            d_filin = self.d_table1
+        
+        d_out = {}
+        for chem in d_filin.keys():
+            header = d_filin[chem][col_header]
+            if not header in list(d_out.keys()):
+                d_out[header] = {}
+                for merge_col in l_merge_col:
+                    d_out[header][merge_col] = []
+                    d_out[header]["count"] = 0
+                    d_out[header]["feature"] = []
+
+            for merge_col in l_merge_col:
+                l_val_col = d_filin[chem][merge_col].split(",")
+                for val_col in l_val_col:
+                    if not val_col in  d_out[header][merge_col]:
+                        d_out[header][merge_col].append(val_col)
+            d_out[header]["count"] = d_out[header]["count"] + 1
+
+            #check feature 
+            for mode in d_origin.keys():
+                l_features_mode = d_origin[mode]["featureid"].split(";")
+                for feature_col in l_features_col:
+                    l_features_tocheck = d_filin[chem][feature_col].split(",")
+                    
+                    #interception
+                    l_feature_inter = list(set(l_features_mode) & set(l_features_tocheck))
+                    
+                    if len(l_feature_inter) > 0:
+                        d_out[header]["feature"].append(mode)
+        
+        filout = open(p_out, "w")
+        filout.write("%s\t%s\tFeature_origin\tCount\n"%(col_header, "\t".join(["merge_" + merge_col for merge_col in l_merge_col])))
+        for h in d_out.keys():
+            filout.write("%s\t%s\t%s\n"%(h,"\t".join([",".join(d_out[h][merge_col]) for merge_col in l_merge_col]), ",".join(d_out[h]["feature"]), d_out[h]["count"]))
+        filout.close()
+
+
+    def checkIfInfragList(self, pfile1, check_col, flag_col, d_frag, p_out):
+        
+        d_out = {}
+        d_filin = toolbox.loadMatrix(pfile1, sep = ",")
+        for chem in d_filin.keys():
+            if d_filin[chem][flag_col] != "1":
+                continue
+            DTXSID = d_filin[chem][check_col]
+            d_out[DTXSID] = []
+            
+            for mode in d_frag.keys():
+                for chem_frag in d_frag[mode].keys():
+                    l_DTXSID_frag = d_frag[mode][chem_frag]["DB_name"].split(";")
+                    print(l_DTXSID_frag)
+                    if DTXSID in  l_DTXSID_frag:
+                        d_out[DTXSID].append(mode)
+        
+        filout = open(p_out, "w")
+        filout.write("DTXSID\tMode\n")
+        for chem in d_out.keys():
+            filout.write("%s\t%s\n"%(chem, ",".join(d_out[chem])))
+        filout.close()
+                    
+
+
+
+
 
 pfile1 = "./../../results/WWBC_MS_database_6.30.21_prepForAnotation.csv"
 
@@ -90,17 +191,17 @@ pfile1 = "./../../results/WWBC_MS_database_6.30.21_prepForAnotation.csv"
 #p_out = "./../../results/diff_table/log_positive_nurse.txt"
 
 # check parent compounds
-pfile2 = "./../../data/result_NTA/ssi_db_withParentCompunds.csv"
-p_out = "./../../results/diff_table/log_ssi_parentCompound.txt"
+#pfile2 = "./../../data/result_NTA/ssi_db_withParentCompunds.csv"
+#p_out = "./../../results/diff_table/log_ssi_parentCompound.txt"
 
 
 # check database from Jessica
-pfile2 = "./../../data/result_NTA/WWBC_MS_database_4.7.21_prepForAnotation_JAT.csv"
-p_out = "./../../results/diff_table/log_DB_jessica.txt"
+#pfile2 = "./../../data/result_NTA/WWBC_MS_database_4.7.21_prepForAnotation_JAT.csv"
+#p_out = "./../../results/diff_table/log_DB_jessica.txt"
 
 # check database from Jessica
-pfile2 = "./../../data/result_NTA/2021.06.27ssi_db_withParentCompunds.csv"
-p_out = "./../../results/diff_table/log_2021.06.27ssi.txt"
+#pfile2 = "./../../data/result_NTA/2021.06.27ssi_db_withParentCompunds.csv"
+#p_out = "./../../results/diff_table/log_2021.06.27ssi.txt"
 
 # vincent
 #pfile1 = "./../../data/result_NTA/List_matched_no_filter_neg_FB_06.21_rar.csv"
@@ -108,48 +209,54 @@ p_out = "./../../results/diff_table/log_2021.06.27ssi.txt"
 #p_out = "./../../results/diff_table/log_rar_vincent.txt"
 
 #vincent rerun 07-21
-pfile2 = "./../../data/result_NTA/List_matched_no_filter_pos_FB_07.21.csv"
-p_out = "./../../results/diff_table/log_FB_pos_vincent_07-21.txt"
+#pfile2 = "./../../data/result_NTA/List_matched_no_filter_pos_FB_07.21.csv"
+#p_out = "./../../results/diff_table/log_FB_pos_vincent_07-21.txt"
 
 
 # check diff database
-pfile1 = "./../../results/WWBC_MS_database_6.30.21_prepForAnotation.csv"
-pfile2 = "./../../results/WWBC_MS_database_4.7.21_prepForAnotation.csv"
-p_out = "./../../results/diff_table/DB_diff.txt"
+#pfile1 = "./../../results/WWBC_MS_database_6.30.21_prepForAnotation.csv"
+#pfile2 = "./../../results/WWBC_MS_database_4.7.21_prepForAnotation.csv"
+#p_out = "./../../results/diff_table/DB_diff.txt"
 
 
 # chech jessica
-pfile1 = "./../../results/WWBC_MS_database_6.30.21_prepForAnotation.csv"
-pfile2 = "./../../data/result_NTA/2021.07.09ssi_db_withParentCompunds.csv"
-p_out = "./../../results/diff_table/log_2021.07.09ssi_db_withParentCompunds.txt"
+#pfile1 = "./../../results/WWBC_MS_database_6.30.21_prepForAnotation.csv"
+#pfile2 = "./../../data/result_NTA/2021.07.09ssi_db_withParentCompunds.csv"
+#p_out = "./../../results/diff_table/log_2021.07.09ssi_db_withParentCompunds.txt"
 
 #vincent rerun 07-21
-pfile1 = "./../../results/WWBC_MS_database_6.30.21_prepForAnotation.csv"
-pfile2 = "./../../data/result_NTA/List_matched_no_filter_neg_FB_07.21.csv"
-p_out = "./../../results/diff_table/log_FB_neg_vincent_07-21.txt"
+#pfile1 = "./../../results/WWBC_MS_database_6.30.21_prepForAnotation.csv"
+#pfile2 = "./../../data/result_NTA/List_matched_no_filter_neg_FB_07.21.csv"
+#p_out = "./../../results/diff_table/log_FB_neg_vincent_07-21.txt"
 
 
 # concatene POS_NEG_FF
-pfile2 = "./../../data/result_NTA/20210713_FullFragList_FF_nursesPOS_sheet2.csv"
-p_out = "./../../results/diff_table/log_20210713_FullFragList_FF_nursesPOS_sheet2.txt"
+#pfile2 = "./../../data/result_NTA/20210713_FullFragList_FF_nursesPOS_sheet2.csv"
+#p_out = "./../../results/diff_table/log_20210713_FullFragList_FF_nursesPOS_sheet2.txt"
 
 
 # check after filtering file
-pfile2 = "/mnt/c/Users/AlexandreBorrel/research/SSI/exposome/data/result_NTA_tofilterforseg/list_filtered_jessica_dup.csv"
-pfile1 = "/mnt/c/Users/AlexandreBorrel/research/SSI/exposome/results/filter_annotation/filtered_annotation.csv"
-p_out = "./../../results/diff_table/log_diff_annotation.txt"
+#pfile2 = "/mnt/c/Users/AlexandreBorrel/research/SSI/exposome/data/result_NTA_tofilterforseg/list_filtered_jessica_dup.csv"
+#pfile1 = "/mnt/c/Users/AlexandreBorrel/research/SSI/exposome/results/filter_annotation/filtered_annotation.csv"
+#p_out = "./../../results/diff_table/log_diff_annotation.txt"
 
 
 # check after all filtering
-pfile2 = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/result_NTA/20210723_FF_Nurse_FragList_NEG.csv"
-pfile1 = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/results/forFragNeg/NEG_filter_features_3MW_30deltaRT.csv"
-p_out = "./../../results/diff_table/log_diff_annotation.txt"
+#pfile2 = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/result_NTA/20210723_FF_Nurse_FragList_NEG.csv"
+#pfile1 = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/results/forFragNeg/NEG_filter_features_3MW_30deltaRT.csv"
+#p_out = "./../../results/diff_table/log_diff_annotation.txt"
 
 
-cdiff = checkTable(pfile1, pfile2, p_out)
-cdiff.loadFile()
-cdiff.compareCol()
-cdiff.diffValueInCol("mz", ["name_original", "ID", "SMILES", "SMILES_cleaned", "Molweight_cleaned", "ID_raw"])
+# check comfirmation list
+#pfile1 = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv"
+#pfile2 = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv"
+#p_out = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/log_diff.csv"
+
+
+#cdiff = checkTable(pfile1, pfile2, p_out)
+#cdiff.loadFile()
+#cdiff.compareCol()
+#cdiff.diffValueInCol("mz", ["name_original", "ID", "SMILES", "SMILES_cleaned", "Molweight_cleaned", "ID_raw"])
 
 
 

@@ -139,3 +139,23 @@ Develop on Ubuntu on Windows 10 (wsl2 - ubuntu 20.4)
 
 # database 10-28-21
 add 2 col survey drug and UCSF_haz_drug
+
+
+
+# Step 4: Frag confirmation
+mapping target analytes to features in step 1 NT data
+
+List of target chemicals (only need lines 1-42 - 1 n column H or I): https://berkeley.box.com/s/wsqe11x7de9quea15un2ta5n4bmsyval
+Nurse pos features:https://berkeley.box.com/s/r1b5z7vs9nt8alf6s9yyw2huz1n0n9yv
+nurse negative features: https://berkeley.box.com/s/a0h4qxl8arbn7wlel6jc92d26v3pd2hr
+FF pos features https://berkeley.box.com/s/ot52cqpdc1di4nc01oxg9coqvwftr078
+FF neg features  https://berkeley.box.com/s/gbd7lvpl5m7mp7i3r5e8tia4y01by8pc
+
+
+Alex will create a file that contains any feature from N or FF, pos or neg, that was mtched to DTXSID for each target chemical
+include fields: One row per feature (MZ + RT)
+indicate mz and RT
+indicate DTXSID, chem name, formula, CAS
+from list of target chemicals include all columns from W to AE
+indicate mean intensity FF time points, N, OW, FBlank
+indicate if feature comes from FF, N, pos, neg
