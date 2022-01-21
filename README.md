@@ -38,7 +38,7 @@ Molecular descriptors are computed using CompDesc including MolWeight
 
 # Installation
 Develop on Ubuntu on Windows 10 (wsl2 - ubuntu 20.4)
-## Dependancies
+## Dependencies
 - python (3.9)
 - biotransformer (http://biotransformer.ca/) => request java install
 - request database.init for DTXSID search
@@ -49,7 +49,7 @@ Develop on Ubuntu on Windows 10 (wsl2 - ubuntu 20.4)
 - molVS (> 1): https://molvs.readthedocs.io/en/latest/index.html
 - CompDesc ($pip install -i https://test.pypi.org/simple/ CompDesc)
 
-### R libraries + dependancies
+### R libraries + dependencies
 - ncdf4 ($sudo apt-get install r-cran-ncdf4)
 - libmagick ($sudo apt install libmagick++-dev)
 - libxml2-dev ($sudo apt-get install libxml2-dev)
