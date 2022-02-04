@@ -1,0 +1,8 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*__pycache__
+R/R.Rproj
+.vscode/
+database.ini

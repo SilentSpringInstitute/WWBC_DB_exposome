@@ -1,10 +1,6 @@
 from toolbox import toolbox
 
 
-
-
-
-
 class confirmFrag:
     def __init__(self, p_chem_target, p_pos_nurse, p_neg_nurse, p_pos_FF, p_neg_FF, p_neg_node, p_pos_node):
         
