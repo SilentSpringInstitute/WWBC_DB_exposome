@@ -103,6 +103,8 @@ list_chemicals_metabolite = ["Drug_UCSF_PXYS", "Drug_most comon and haz", "Disin
 #c_prepForFrag.mergeAnnotationForFrag()
 
 
+
+####################################
 ## nurse ##
 ###########
 
@@ -114,7 +116,7 @@ list_chemicals_metabolite = ["Drug_UCSF_PXYS", "Drug_most comon and haz", "Disin
 #c_filteria.loadCriteria()
 #c_filteria.filterByCriteriaA()
 #c_filteria.removeDuplicateBasedOnCriteriaD()
-
+###############################################
 
 
 ########### Rematch after frag ################
@@ -184,7 +186,7 @@ p_neg_mode = "/mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-
 
 
 
-## Step 4 => confirm from frag
+## Step 5 => confirm from frag
 pr_data_confirm = PR_DATA + "toConformFrag_12-21-21/"
 p_chem_frag = pr_data_confirm + "all_considered_for_target_N_11.8.21_LH_ranking_rar_ETF_merge_rar2_AB_ETF_rar_LB.csv"#List of target chemicals (only need lines 1-42 - 1 n column H or I): https://berkeley.box.com/s/wsqe11x7de9quea15un2ta5n4bmsyval
 p_nurse_pos = pr_data_confirm + "List_matched_no_filter_pos_FB_06.21_rar.csv"#Nurse pos features:https://berkeley.box.com/s/r1b5z7vs9nt8alf6s9yyw2huz1n0n9yv
@@ -196,7 +198,6 @@ p_node_pos = pr_data_confirm +  "node_attributes_table_pos1.tsv"
 
 
 #revised priority based on likelihood to work on lc/ms - 1st 20	
-#revised priority based on likelihood to work on lc/ms - 2st 20
 
 
 l_select_target_chem = ["revised priority based on likelihood to work on lc/ms - 1st 20", "revised priority based on likelihood to work on lc/ms - 2st 20"]

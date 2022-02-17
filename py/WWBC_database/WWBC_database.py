@@ -32,6 +32,10 @@ class WWBC_database:
         """
         main fuction to prepare the database from the MS db
         """
+        p_database_prepared = self.pr_out + self.name_DB + "_prepForAnotation.csv"
+        if path.exists(p_database_prepared):
+            return p_database_prepared
+        
         self.loadData()
         self.cleanStructure()
         self.processMW(self.minMW, self.maxMW)
@@ -44,6 +48,13 @@ class WWBC_database:
         self.organizeBiotransformationByChemSources(pr_biotransformation,  self.list_chemicals_metabolite)
         self.processMetaboliteFilter(self.minMW, self.maxMW, self.lipinski_violation)
         self.fusionDBAndMetabolite()
+        
+        # check every worked fine
+        if path.exists(p_database_prepared):
+            return p_database_prepared
+        else:
+            print("ERROR: file with the DB prepared does not exist")
+            return 
 
     def loadData(self):
         """
@@ -185,9 +196,10 @@ class WWBC_database:
                 # do not write if the cleaning is not possible (mixture or ion)
                 if self.d_prep[chem]["SMILES_cleaned"] == "":
                     continue
-                # reformate CAS properly
+                # reformate CAS properly in case of date autoformate -- need DB in case of no DB just return -
                 if search("/", self.d_data[chem]["CASRN"]):
-                    self.d_data[chem]["CASRN"] = toolbox.searchCASRNFromDTXSID(self.d_data[chem]["DTXSID"])
+                    try:self.d_data[chem]["CASRN"] = toolbox.searchCASRNFromDTXSID(self.d_data[chem]["DTXSID"])
+                    except: self.d_data[chem]["CASRN"] = "-"
                 filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(self.d_data[chem]["ID"], self.d_data[chem]["DTXSID"],  self.d_data[chem]["CASRN"], self.d_data[chem]["Compound"], self.d_data[chem]["Formula"], self.d_data[chem]["SMILES"], self.d_prep[chem]["SMILES_cleaned"], self.d_prep[chem]["name_cleaned"], self.d_prep[chem]["formula"], self.d_prep[chem]["Molweight_cleaned"], "\t".join(str(self.d_data[chem][k_prop]) for k_prop in l_prop_data)))
             filout.close()
 
@@ -273,7 +285,9 @@ class WWBC_database:
                                 continue
                             else:
                                 SMILES_metabo_cleaned = c_chem.smi
-                                DTXSID = toolbox.searchDTXIDFromSMILES(SMILES_metabo_cleaned)
+                                # need a local version of the dsstox if not return empty string
+                                try:DTXSID = toolbox.searchDTXIDFromSMILES(SMILES_metabo_cleaned)
+                                except: DTXSID = ""
                             if not SMILES_metabo_cleaned in list(d_out.keys()):
                                 d_out[SMILES_metabo_cleaned] = {}
                                 d_out[SMILES_metabo_cleaned] = d_biotransformation[inch]
