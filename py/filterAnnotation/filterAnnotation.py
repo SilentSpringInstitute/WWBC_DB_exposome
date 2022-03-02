@@ -29,7 +29,7 @@ class filterAnnotation:
         
         self.d_criteria = d_filteria
 
-    def filterByCriteriaA(self):
+    def filterByCriteriaMA(self):
 
         
         self.d_prefilter = toolbox.loadMatrix(self.p_matched, sep = ",")

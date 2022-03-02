@@ -1,8 +1,11 @@
-from toolbox import toolbox
+from itertools import count
 
+from django import conf
+from toolbox import toolbox
+from os import path
 
 class confirmFrag:
-    def __init__(self, p_chem_target, p_pos_nurse, p_neg_nurse, p_pos_FF, p_neg_FF, p_neg_node, p_pos_node):
+    def __init__(self, p_chem_target, p_pos_nurse, p_neg_nurse, p_pos_FF, p_neg_FF, p_neg_node, p_pos_node, p_WWBC_db):
         
         self.p_chem_target = p_chem_target
         self.p_pos_nurse = p_pos_nurse
@@ -11,6 +14,7 @@ class confirmFrag:
         self.p_neg_FF = p_neg_FF
         self.p_neg_node = p_neg_node
         self.p_pos_node = p_pos_node
+        self.p_WWBC_db = p_WWBC_db
         
         pass
     
@@ -25,6 +29,11 @@ class confirmFrag:
         self.d_node_neg = toolbox.loadMatrix(self.p_neg_node, sep = "\t")
         
     def mapFeatureToChem(self, l_select_target_chem, l_col_target_chem, p_out):
+        
+        # check if file exist
+        if path.exists(p_out):
+            self.p_confirm_frag = p_out
+            return 
         
         d_out = {}
         for chem_target in self.d_chem_target.keys():
@@ -200,4 +209,44 @@ class confirmFrag:
                 
         
         filout.close()
+        self.p_confirm_frag = p_out
+    
+    def summarizeConfirmFrag(self):
+        
+        # open file confirm in list
+        l_confirm_frag = toolbox.loadMatrixToList(self.p_confirm_frag)
+        l_dtxsid = [d_confirm_frag["DTXSID"] for d_confirm_frag in l_confirm_frag]
+        l_unique = list(set(l_dtxsid))
+        
+        # create count list
+        d_count = {}
+        d_count["Number confirm frag"] = len(l_confirm_frag)
+        d_count["Number of unique dsstoxid"] = len(l_unique)
+        d_count["Number of DSSTOX ID without feature ID"] = len(["NA"  for confirm_frag in l_confirm_frag if confirm_frag["featureid"] == "NA"])
+        
+        # counting from DB
+        l_counting = ["Drug_UCSF_PXYS", "Drug_most comon and haz", "Disinfectant", "Sesquiterpenoids", "FRs", "PFAS", "exposurepred_bin", "MC", "MGDev", "ERactive_bin", "E2Up_bin", "E2UP_priority_level", "P4Up_bin", "P4Up_priority_level", "pesticidemammarytumors_bin", "VBtoxcast_bin", "nitroPAH_bin", "pellizzari_bin", "UCSF_haz_drug", "Survey_drug", "phthalate"]
+        for counting in l_counting: d_count[counting] = 0
+        
+        # open database
+        l_chem_db = toolbox.loadMatrixToList(self.p_WWBC_db)
+        #map on DTXSID
+        d_db = {}
+        for d_chem in l_chem_db:
+            dtxsid = d_chem["DTXSID"]
+            d_db[dtxsid] = d_chem
+        
+        #make count
+        for confirm_frag in l_confirm_frag:
+            dtxsid = confirm_frag["DTXSID"]
+            if not dtxsid in l_unique:
+                continue
+            else:
+                l_unique.remove(dtxsid)
+            
+            for counting in l_counting:
+                if d_db[dtxsid][counting] == "1":
+                    d_count[counting] = d_count[counting] + 1
+        
+        print("\n".join([str(k) + ": " + str(d_count[k]) for k in d_count.keys()]))   
         

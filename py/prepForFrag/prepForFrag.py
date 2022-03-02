@@ -7,7 +7,7 @@ class prepForFrag:
         self.pr_out = pr_out
         self.name_file = name_file
         self.p_filter_criteria = p_filter_criteria
-        self.verbose = 0
+        self.verbose = 1
 
     def filteredAnnotation(self):
         """
@@ -22,14 +22,16 @@ class prepForFrag:
         for p_annotated_file in self.l_p_annotated_filtered_files:
             self.c_filteria.p_matched = p_annotated_file
             self.c_filteria.name_out = p_annotated_file.split("/")[-1][0:-4]
-            self.c_filteria.filterByCriteriaA() # apply criteria on the mapping
+            self.c_filteria.filterByCriteriaMA() # apply criteria on the mapping
             d_d_filtered_annotation[p_annotated_file.split("/")[-1][0:-4]] = self.c_filteria.d_filtered
         self.d_d_filtered_annotation = d_d_filtered_annotation   
         
         if self.verbose == 1:
-            print("Filtered annotation")
             for k_filtered in self.d_d_filtered_annotation.keys():
-                print( k_filtered, " filtered:", len(list(d_d_filtered_annotation[k_filtered].keys())))
+                l_feature_id = [d_d_filtered_annotation[k_filtered][k]["featureid"] for k in d_d_filtered_annotation[k_filtered].keys()]
+                l_feature_id = list(set(l_feature_id))
+                print( k_filtered, " filtered with duplicate feature id:", len(list(d_d_filtered_annotation[k_filtered].keys())))
+                print( k_filtered, " filtered with unique feature id:", len(l_feature_id))
 
     def mergeAnnotationForFrag(self):
         """
@@ -88,7 +90,7 @@ class prepForFrag:
                 d_MW[MW].append(d_add)
 
 
-        # step 3 with the RT and the dofference 30s 
+        # step 3 with the RT and the difference 30s 
         ## only one turn of RT
         for MW in d_MW.keys():
             i = 0
