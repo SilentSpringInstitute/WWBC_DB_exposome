@@ -1,48 +1,16 @@
 # NTA for woman nurse and firefighters
-The goal of this project is to realize Non targeted analysis
-## 1. Women Worker Biomonitoring Chemical Database Development (v.2)
-### 1.1. Datasets - input files
-> - UCSF haz and drugs inventory (<i>UCSF_Haz_Drugs Inventory_FINAL 2_2018_wDTSXIDs.csv</i>)
-> - List of drugs from survey on nurses (<i>nurses_otherdrugs_rar_10272021.csv</i>)
-> - First version of the WWBC database (<i>WWBC_MS_database_10.28.21.csvv</i>)
-
-### 1.2. Step to prepare chemicals
-- Prepare the chemicals structures using the best practices and including:
-  - H removal
-  - SMILES standardization
-  - sanitize (pH7) 
-  - ion stripping
-- Compute isotopic MW
-- Map each chemicals on the DSSTOX database (https://comptox.epa.gov/dashboard/)
-- filter chemicals based on MW, excluded chemicals with low MW (< 100Da) and high MW (> 1000Da) and chemicals that do not match any DSSTOX id
-
-### 1.3. Compute metabolites
-- Run biotransformer software on the standardize SMILES (http://biotransformer.ca/)
-- prepare metabolites using the same protocol that before
-- Define name of metabolite: <b>MTX-id</b>
-- Filter metabolites based on MW, excluded metabolites with low MW (< 100Da) and high MW (> 1000Da) MW and metabolite with poor absorption Lipinski violations (> 3)
-
-## Step 2: Non-targeted LC-QTOF/MSfull scan analysis procedure (and developing the features list)
+The goal of this project is to realize Non targeted analysis for nurse<br>
+The pipeline is divided in 5 steps:
+- Step 1: Women Worker Biomonitoring Chemical Database Development (v.2)
+- Step 2: Non-targeted LC-QTOF/MSfull scan analysis procedure (and developing the features list)
+- Step 3: Review of features and criteria to select features for fragmentation
+- Step 4: Fragmentation and annotation
+- Step 5: Chemical selection criteria for targeted confirmation and quantification 
 
 <br>
-<br>
+Please see the full pipeline in the py note book: xxxx
 
-
-## Step 3: Review of features and criteria to select features for fragmentation
-
-<br>
-<br>
-
-## Step 4: Fragmentation and annotation
-
-<br>
-<br>
-
-## Step 5: Chemical selection criteria for targeted confirmation and quantification 
-
-<br>
-<br>
-<br>
+<br><br>
 
 ---
 
