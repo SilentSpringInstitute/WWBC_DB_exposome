@@ -1,0 +1,289 @@
+File1 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+File2 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+
+=====Compare column names=====
+File 1 => 83 rows
+File 2 => 128 rows
+File 1 => 30 col
+File 2 => 47 col
+Intersection => 21 col
+Col intersection => Elissia.ID.supplier,Selected.forced.in.Nurses,choose.for.targeted.83,formula_original,CASRN,name_original,neg.pos.from.JT,selected.rar.proposed.high.exposure.and.tox,selected.because.of.NTA.confrmed.in.fragmentation,POS.mode,DTSC.and.other.chemists..any.concern.with.compatability.with.your.methods..chemical.stability.in.serum,FORCED.IN.FF,DTSC...has.standards.,Polarizability,choose.for.targeted.long.and.older.,LH.rank,Link.to.order,LH.notes,NEG.mode,DTXSID,X
+
+
+=====Compare value in intersection col=====
+Table join with col: DTXSID
+Similar rows: 89
+Different rows: 39
+
+<<Diff DTXSID7044972
+X
+Probably could force protonation in extreme acid environment => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+1 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID7044972
+X
+Probably could force protonation in extreme acid environment => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+1 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID7044972
+X
+Probably could force protonation in extreme acid environment => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+1 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID7044972
+X
+Probably could force protonation in extreme acid environment => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+1 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID7044972
+X
+Probably could force protonation in extreme acid environment => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+1 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID7044972
+X
+Probably could force protonation in extreme acid environment => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+1 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID7044972
+X
+Probably could force protonation in extreme acid environment => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+1 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID7044972
+X
+Probably could force protonation in extreme acid environment => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+1 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID7025132
+X
+Probably could force protonation in  acid environment => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+2 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID7025132
+X
+Probably could force protonation in  acid environment => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+2 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID7025132
+X
+Probably could force protonation in  acid environment => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+2 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID7023300
+X
+Maybe inefficient => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+11 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID7023300
+X
+Maybe inefficient => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+11 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID7023300
+X
+Maybe inefficient => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+11 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID7023300
+X
+Maybe inefficient => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+11 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID7023300
+X
+Maybe inefficient => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+11 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID3022877
+X
+Maybe inefficient => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+20 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID3022877
+X
+Maybe inefficient => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+20 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID5023035
+X
+May not see precursor => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+22 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID5023035
+X
+May not see precursor => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+22 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID3023340
+X
+Maybe inefficient => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+32 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID3023340
+X
+Maybe inefficient => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+32 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID2021864
+X
+similar to p-cresol => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+49 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID2021864
+X
+similar to p-cresol => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+49 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID9020825
+X
+may be able to force protonation => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+58 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID9020825
+X
+may be able to force protonation => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+58 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID2020921
+X
+May be inefficient => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+59 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID2020921
+X
+May be inefficient => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+59 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID2020921
+X
+May be inefficient => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+59 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID7021869
+X
+Probably won't see the parent ion => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+83 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID7021869
+X
+Probably won't see the parent ion => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+83 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID1020439
+X
+Ionization efficient may be low or may see ion suppression => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+79 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID1020439
+X
+Ionization efficient may be low or may see ion suppression => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+79 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID6020939
+X
+Maybe could force deprotonation in basic conditions => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+82 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID6020939
+X
+Maybe could force deprotonation in basic conditions => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+82 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID50184723
+X
+Probably could force protonation in  acid environment => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+53 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID50184723
+X
+Probably could force protonation in  acid environment => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+53 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID9044299
+X
+Probably could force protonation in  acid environment => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+25 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>
+
+<<Diff DTXSID9044299
+X
+Probably could force protonation in  acid environment => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+25 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+Col diff: X
+>>

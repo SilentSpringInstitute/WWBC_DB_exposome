@@ -1,0 +1,27 @@
+##### Criteria apply to filter NTA  ####
+########################################
+
+This is a default file, change following parameter 
+to update the filtering.  
+
+Each criteria should included the right column name with a 
+the good typo including space.
+- criteriaM (criteria main) will impact directly the main matrix
+- criteriaA (criteria annotation) will not impact the main matrix before all criteria applied
+- criteriaD (criteria to remove )
+
+## Criteria steps for annotation ##
+###################################
+
+
+CriteriaM1. percent_FB <= 50
+CriteriaA1. higher_intensity_N == 1 OR DF_high_N == 1 OR cv_N/cv_OW >= 1.5 OR sd_N >= AVG sd_N AND Drug_UCSF_PXYS == 1 OR FRs == 1 OR PFAS == 1 OR Disinfectant == 1 OR E2Up_bin == 1 OR P4Up_bin == 1 OR ERactive_ER_AUC >= 0.01 OR nitroPAH_bin == 1 OR pellizzari_bin == 1 OR phthalate == 1 OR MC == 1 OR MGDev == 1
+CriteriaA2. higher_intensity_N == 1 OR DF_high_N == 1 OR cv_N/cv_OW >= 1.5 OR sd_N >= AVG sd_N AND sd_N >= AVG sd_N AND exposurepred_bin == 1
+
+
+## remove duplicates and merge mapping of features ##
+#####################################################
+
+CriteriaD1. intensity >= 10000
+CriteriaD2. mz => 3 digits
+CriteriaD3. time => 30 s

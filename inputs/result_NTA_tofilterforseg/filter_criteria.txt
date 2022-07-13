@@ -1,0 +1,15 @@
+##### Criteria apply to filter NTA  ####
+########################################
+
+This is a default file change following parameter 
+to update the filtering.  
+
+
+## Criteria steps ##
+####################
+
+1. percent_FB <= 50
+2. sd_N >= MEAN sd_N AND 
+2. higher_intensity_N = 1
+2. DF_high_N = 1 AND ERactive_ER_AUC >= 0.01 
+2. cv_N/cv_OW >= 1.5

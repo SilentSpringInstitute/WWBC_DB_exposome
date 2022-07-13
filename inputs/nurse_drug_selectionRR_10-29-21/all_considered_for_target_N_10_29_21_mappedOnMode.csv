@@ -1,0 +1,69 @@
+DTXSID	CASRN	name_original	formula_original	choose for targeted? (ID the ones ID from NTA with 1-- the ones forced in with 2-- and give reason and N vs FF)	POS mode	NEG mode
+DTXSID001009330	'3562-63-8	MEGESTROL	C22H30O3	1 yes from NTA	1	1
+DTXSID0025527	'71-58-9	Medroxyprogesterone--acetate	C24H34O4	1 yes from NTA-- EC interested	1	1
+DTXSID00442840	'329710-76-1	2-(TRIFLUOROMETHOXY)ETHYL--TRIFLUOROMETHANESULFONATE	C4H4F6O4S	1 yes from nta		1
+DTXSID0045703	'28721-07-5	OXCARBAZEPINE	C15H12N2O2	yes-- common and hazardous		
+DTXSID1020350	'120-71-8	2-Methoxy-5-methylaniline	C8H11NO	rar choice? Exposure predict-- pellizari-- and p4 up		1
+DTXSID1020439	'120-83-2	2--4-Dichlorophenol	C6H4Cl2O	rar choice-- high pred exposure-- edc e2 up		
+DTXSID1022556	'59277-89-3	Acyclovir	C8H11N5O3	2 reported used-- not on haz list-- used a lot		
+DTXSID1022845	'1622-61-3	CLONAZEPAM	C15H10ClN3O3	yes-- common and hazardous		
+DTXSID1032278	'57-22-7	Vincristine	C46H56N4O10	2 reported using-- haz		
+DTXSID1034187	'10540-29-1	Tamoxifen	C26H29NO	1 reported use-- haz		1
+DTXSID2020006	'103-90-2	Acetaminophen	C8H9NO2	1 yes from NTA	1	
+DTXSID2020634	'51-21-8	5-Fluorouracil	C4H3FN2O2	2 reported use-- haz		
+DTXSID2020892	'443-48-1	METRONIDAZOLE	C6H9N3O3	yes-- common and hazardous (mammary tumor)		
+DTXSID2020898	'50-07-7	Mitomycin--C	C15H18N4O5	1 repored use-- high exposure potential		1
+DTXSID2021864	'105-67-9	2--4-Dimethylphenol	C8H10O	rar choice high pred exposure-- EDC e2 up	1	1
+DTXSID2022705	'52485-79-7	BUPRENORPHINE	C29H41NO4	1 yes from NTA	1	1
+DTXSID2033314	'55-56-1	Chlorhexidine	C22H30Cl2N10	? LH selection-- disinfectant		1
+DTXSID30154863	'1257044-40-8	ABT-199 (venetoclax)	C45H50ClN7O7S	1 reported use-- haz?		
+DTXSID3020209	'94-26-8	Butylparaben	C11H14O3	?	1	1
+DTXSID3020625	'98319-26-7	Finasteride	C23H36N2O2	2 reported use-- repro harm		
+DTXSID3020910	'55-98-1	Busulfan	C6H14O6S2	4 reported adminis		
+DTXSID3022877	'147-94-4	Cytarabine	C9H13N3O5	7 reported admin-- LH selection		1
+DTXSID3023340	'128794-94-5	Mycophenolate--mofetil	C23H31NO7	y? 15 reported administering-- LH selection		1
+DTXSID3026566	'94-60-0	Dimethyl--hexahydroterephthalate	C10H16O4	1 yes from NTA	1	
+DTXSID3036496	'797-63-7	Levonorgestrel	C21H28O2	? NTA? But DTXSID not match		1
+DTXSID3046742	'41575-94-4	Carboplatin	C6H10N2O4Pt	2 reported use-- haz		
+DTXSID3075044	'2315-61-9	2-[2-[4-(1--1--3--3-Tetramethylbutyl)phenoxy]ethoxy]ethanol	C18H30O3	1 yes from NTA-- FF	1	1
+DTXSID4020614	'297-76-7	Ethynodiol--diacetate	C24H32O4	1 yes from NTA	1	1
+DTXSID4020822	'59-05-2	Methotrexate	C20H22N8O5	Y? 12 reported administering-- LH selection		
+DTXSID4021185	'53-03-2	Prednisone	C21H26O5	yes-- common and hazardous		1
+DTXSID4034150	'52-86-8	Haloperidol	C21H23ClFNO2	?-- EC frequ used-- haz-- yes-- common and hazardous		
+DTXSID4039657	'21679-14-1	Fludarabine	C10H12FN5O4	4 reported use		1
+DTXSID4041070	'24280-93-1	Mycophenolic--acid	C17H20O6	yes-- common and hazardous-- included as different form		1
+DTXSID5020364	'50-18-0	CYCLOPHOSPHAMIDE	C7H15Cl2N2O2P	4 reported as cytoxan-- LH selection		
+DTXSID5023035	'33419-42-0	Etoposide	C29H32O13	8 reported administering-- long half life?		
+DTXSID5023742	'81-81-2	Warfarin	C19H16O4	?-- EC haz-- common-- yes-- common and hazardous		
+DTXSID5025021	'84-61-7	Dicyclohexyl--phthalate	C20H26O4	1 yes from NTA	1	1
+DTXSID5046354	'104987-11-3	Tacrolimus	C44H69NO12	LH selection-- yes-- common and hazardous		
+DTXSID6020648	'54-31-9	FUROSEMIDE	C12H11ClN2O5S	EC interested-- yes-- common and hazardous		
+DTXSID6020804	'148-82-3	Melphalan	C13H18Cl2N2O2	4 reported used-- yes		
+DTXSID6020939	'139-13-9	Nitrilotriacetic--acid	C6H9NO6	rar choice-- high predicted exposure-- EDC-E2up		
+DTXSID60221855	'71609-22-8	N-HYDROXY-N--N'-DIACETYLBENZIDINE	C16H16N2O3	1 yes from NTA		
+DTXSID6034186	'52-01-7	Spironolactone	C24H32O4S	yes-- common and hazardous	1	
+DTXSID7020760	'3778-73-2	Ifosfamide	C7H15Cl2N2O2P	2 reported uses		
+DTXSID7021869	'106-44-5	p-Cresol	C7H8O	rar choice high predicted exposure and EDC-e2 up	1	1
+DTXSID7022883	'20830-81-3	Daunorubicin	C27H29NO10	2 reported uses		
+DTXSID7023300	'83-43-2	Methylprednisolone	C22H30O5	1 yes from NTA	1	1
+DTXSID7023431	'100-33-4	PENTAMIDINE	C19H24N4O2	1 reported use-- LH less interested	1	
+DTXSID7025132	'83-41-0	1--2-Dimethyl-3-nitrobenzene	C8H9NO2	1 yes from NTA (acetominophen)	1	
+DTXSID7044972	'6701-13-9	1--10-Decanediol--dimethacrylate	C18H30O4	1 yes from NTA-- FF	1	
+DTXSID8021480	'23214-92-8	ADRIAMYCIN	C27H29NO11	5 reported as doxorubicin-- LH selection		
+DTXSID8022371	'58-22-0	Testosterone	C19H28O2	in NTA - different form-- yes-- common and hazardous	1	
+DTXSID8023135	'118-42-3	HYDROXYCHLOROQUINE (Plaquinil)	C18H26ClN3O	1 reported use-- not haz		
+DTXSID8023557	'36791-04-5	Ribavirin	C8H12N4O5	1 reported use-- repro harm		1
+DTXSID8023688	'97240-79-4	Topiramate	C12H21NO8S	yes-- common and hazardous		
+DTXSID8035001	'112-38-9	10-Undecenoic--acid	C11H20O2	rar choice? Expos predict-- EDC e2 up	1	
+DTXSID8041032	'82410-32-0	Ganciclovir	C9H13N5O4	5 reported used		
+DTXSID8048288	'175865-60-8	VALGANCICLOVIR	C14H22N6O5	3 reported administering-- LH selection?-- yes-- common and hazardous		1
+DTXSID9020116	'320-67-2	5-Azacytidine	C8H12N4O5	1 reported use-- on haz list		1
+DTXSID9022601	'1397-89-3	Amphotericin--B	C47H73NO17	1 erson reported use-- haz		
+DTXSID9023413	'33069-62-4	Paclitaxel (taxol)	C47H51NO14	1 reported use		
+DTXSID9032537	'7173-51-5	Didecyldimethylammonium--chloride	C22H48ClN	?		
+DTXSID9036515	'57-85-2	Testosterone--propionate	C22H32O3	1 yes NTA	1	1
+DTXSID9040683	'595-33-5	Megestrol--acetate	C24H32O4	1 yes NTA	1	1
+DTXSID9041653	'4707-47-5	Methyl--2--4-dihydroxy-3--6-dimethylbenzoate	C10H12O4	rar choice?-- high exposure predicted and EDC-e2 up	1	
+DTXSID9044299	'93390-81-9	FOSPHENYTOIN	C16H15N2O6P	yes--  common and hazardous-- no handling precautions		
+DTXSID9046023	'68291-97-4	ZONISAMIDE	C8H8N2O3S	yes-- repro toxin-- yes-- common and hazardous		
+DTXSID9034317	'8001-54-5	Benzalkonium--chloride	C21H38ClN	? Rar selection-- disinfectant		

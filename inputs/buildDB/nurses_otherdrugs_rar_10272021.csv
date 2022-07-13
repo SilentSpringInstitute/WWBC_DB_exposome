@@ -1,0 +1,71 @@
+Drug,Count (if available),DTSXID (from wwbc database plus other sources),Confirmed in Drugs_from _survey_06_07_2021 (EF file) (as of 10/22/2021),Confirmed in annotation DB (10/22/2021) ,,
+5FU,1,DTXSID2020634,yes as Fluorouracil,yes,,
+Acyclovir,1,DTXSID1022556,yes,yes,Note: also exists as Valacyclovir witih DTXSID1023732,
+Adriamycin,2,DTXSID8021480,yes,yes,"Note: also exists as Adriamycin,hydrochloride with DTXSID3030636",
+aerosol Amphotericin B,1,DTXSID9022601,yes,no,,"in DB as amphotericin,B - DTXSID9022601"
+ATG,1,NA,no (Anti-Thymocyte Globulin),no,,MW too high >1000 g/mol
+ATG,1,NA,no,no,,MW too high >1000 g/mol
+Azacitidine,1,DTXSID9020116,yes,no,,in DB as 5-Azacytidine
+Busulfan,4,DTXSID3020910,yes,yes,,
+Carboplatin,2,DTXSID3046742,yes,yes,,
+Cisplatin,2,NA,yes,no,,"DTXSID4024983 cisplatin not in DB, removed for analytical reason (Pt-N bond)"
+CLONAZEPAM,,DTXSID1022845,yes,yes,,
+Cyclophosphamide,2,DTXSID5020364,yes,yes,"Note: also exists as Cyclophosphamide,monohydrate with DTXSID6024888",
+Cyclosporin,1,NA,yes,no (but is in Elissia's tab: was in 03.22.21 db),,MW too high >1000 g/mol
+Cyclosporin,1,NA,yes,no,,MW too high >1000 g/mol
+CYCLOSPORINE,,NA,yes,no,,MW too high >1000 g/mol
+Cyclovir,1,DTXSID1022556,yes as acyclovir,yes as acyclovir,,
+Cytarabine,7,DTXSID3022877,yes   ,yes,"Note: also exists as Cytarabine,hydrochloride with DTXSID5024891",
+Cytoxan,4,DTXSID5020364,yes,yes,Note: 10/27/2021 now cannot find,in as cyclophosphamide
+Daunorubicin,2,DTXSID7022883,yes   ,yes,,
+Depakote and other reproductive toxicants,1,NA,yes,no not under any name,,Elissia sheet lists it and DTXSID70227388 and Divalproex - stripped when we removed mixtures because it is listed as a mixture.  Could still target this.
+Dimethyl sulfoxide,1,NA,yes,no  ,,MW too low < 100 g/mol
+Doxorubicin,5,DTXSID8021480,yes   ,no,,in  as adriamycin (DTXSID8021480)
+Etoposide,8,DTXSID5023035,yes   ,yes,"Note: also exists as Etoposide,phosphate with DTXSID9048645",
+Fentanyl,1,DTXSID9023049,yes,yes,"Note: also exists as Dl-cis-3-Methylfentanyl,hydrochloride with DTXSID9048930",
+Finasteride,2,DTXSID3020625,yes   ,yes,,
+Fludarabine,4,DTXSID4039657,yes   ,yes,,
+Fluorouracil,1,DTXSID2020634,yes   ,yes,Note: is listesd as 5-Fluorouracil,
+FOSPHENYTOIN,,DTXSID9044299,yes,yes,,
+FUROSEMIDE,,DTXSID6020648,yes,yes,,
+Ganciclovir,5,DTXSID8041032,yes   ,yes,Note: also exists as ValGanciclovir with DTXSID8048288,
+HALOPERIDOL,,DTXSID4034150,yes,yes,,
+Hydroxyurea,2,DTXSID9023752,yes   ,yes,"Note: listed as 1-[1-(1-benzothiophen-2-yl)ethyl]-1-hydroxyurea, but also exists as 1-[(1S,4R)-4-[3-(4-fluorophenoxy)phenoxy]cyclopent-2-en-1-yl]-1-hydroxyurea with DTXSID2047303",
+Ifosfamide,2,DTXSID7020760,yes   ,yes,,
+Insulin,1,NA,yes   ,no (but is in Elissia's tab: was in 03.22.21 db),,MW too high > 1000 g/mol
+IV IG,2,NA,no,no,,MW too high > 1000 g/mol
+Melphalan,4,DTXSID6020804,yes   ,yes,,in as Hydroxychloroquine
+Methotrexate,12,DTXSID4020822,yes   ,yes,,in as tacrolimus
+METRONIDAZOLE,,DTXSID2020892,yes,yes,,
+Mitomycin,1,DTXSID2020898,yes   ,yes? - shorter var name,Note: listed as Mitomycin C,
+Mycophenolate,15,DTXSID3023340,yes   ,yes? - shorter var name,"Note: listed as 1-[1-(1-benzothiophen-2-yl)ethyl]-1-hydroxyurea, but also exists as 1-[(1S,4R)-4-[3-(4-fluorophenoxy)phenoxy]cyclopent-2-en-1-yl]-1-hydroxyurea with DTXSID2047303",
+MYCOPHENOLATE,,DTXSID3023340,yes,yes,"Note: listed as 1-[1-(1-benzothiophen-2-yl)ethyl]-1-hydroxyurea, but also exists as 1-[(1S,4R)-4-[3-(4-fluorophenoxy)phenoxy]cyclopent-2-en-1-yl]-1-hydroxyurea with DTXSID2047303",
+OXCARBAZEPINE,,DTXSID0045703,yes,yes,,
+Paclitaxel,1,DTXSID9023413,yes   ,yes,,
+Pentamidine,1,DTXSID7023431,yes   ,yes,,
+PHENYTOIN,,DTXSID9044299,yes,yes,Note: listed as FOSPHENYTOIN,
+Plaquenil,1,DTXSID8023135,yes   ,no,,in as Hydroxychloroquine
+PREDNISONE,,DTXSID4021185,yes,yes,Note: also exists as Meprednisone with DTXSID8023260,
+Prograf,2,DTXSID5046354,yes   ,no,,in as tacrolimus
+Restasis eye drop (cyclosporin) comes in yellow chemo bags,1,NA,yes,no,,MW too high >1000 g/mol
+Ribavirin,1,DTXSID8023557,yes,yes,,MW too high >1000 g/mol
+Rituxan,4,NA,yes   ,no,,MW too high >1000 g/mol
+Rituxan,1,NA,yes,no,,MW too high >1000 g/mol
+Rituximab,1,NA,yes   ,no,,MW too high >1000 g/mol
+Simulect,1,NA,yes,"no, and not w name Basiliximab",,MW too high >1000 g/mol
+SPIRONOLACTONE,,DTXSID6034186,yes,yes,,
+TACROLIMUS,,DTXSID5046354,yes,yes,Note: we ask abouut this in the survey,
+Tamoxifen,1,DTXSID1034187,yes   ,yes,"Note: also exists as 4-Hydroxytamoxifen with DTXSID3037094, and as (Z)-4-Hydroxytamoxifen with DTXSID7022384",
+Tamsulosin,1,DTXSID3023631,yes   ,yes,,
+Taxol,2,DTXSID2022674,yes   ,"not alone, as part of longer name - betaxolol",Note: listed as Betaxolol - is this the correct drug?,in as Paclitaxel
+TESTOSTERONE,,DTXSID8022371,yes,yes,"Note: listed as 7 additional compounds: 5alpha-Dihydrotestosterone (DTXSID9022364); Testosterone,propionate (DTXSID9036515); Testosterone,isocaproate (DTXSID0046806); 17-Methyltestosterone (DTXSID1033664); Testosterone,decanoate (DTXSID5046198); Testosterone,17-phenylpropionate (DTXSID5048712); Epitestosterone (DTXSID8022329)",
+Thymoglobulin,2,NA,no,no ,,MW too high >1000 g/mol
+Thymoglobulin,3,NA,no,no,,MW too high >1000 g/mol
+TOPIRAMATE,,DTXSID8023688,yes,yes,,
+Valganciclovir,3,DTXSID8048288,yes   ,yes,,
+VALGANCICLOVIR,,DTXSID8048288,yes,yes,,
+Venetoclax,1,DTXSID30154863,yes   ,no,,In as ABT-199 (DTXSID30154863)
+Vincristine,2,DTXSID1032278,yes   ,yes,,"perhaps was listed as a anaesthetic gas in questionnaire but is not in Nurses_other drugs"" file. Could add to DB"
+WARFARIN,,DTXSID5023742,yes,yes,"Note: also exists as 4-Hydroxytamoxifen with DTXSID3037094, and as (Z)-4-Hydroxytamoxifen with DTXSID7022384",
+ZONISAMIDE,,DTXSID9046023,yes,yes,,
+?enflurane? - add to DB?,,DTXSID1020562,,,,"perhaps was listed as a anaesthetic gas in questionnaire but is not in Nurses_other drugs"" file. Could add to DB"

@@ -1,0 +1,17 @@
+File1 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/all_considered_for_target_N_11.8.21_LH ranking_rar_ETF merge_rar2_AB_ETF_rar_LB.csv
+File2 => /mnt/c/Users/AlexandreBorrel/research/SSI/NTA/data/merge_check_12-15-21/N_FFConfirmationAndSemitarget_list.csv
+
+=====Compare column names=====
+File 1 => 83 rows
+File 2 => 128 rows
+File 1 => 29 col
+File 2 => 47 col
+Intersection => 21 col
+Col intersection => selected.because.of.NTA.confrmed.in.fragmentation,choose.for.targeted.long.and.older.,Polarizability,DTXSID,name_original,Link.to.order,DTSC.and.other.chemists..any.concern.with.compatability.with.your.methods..chemical.stability.in.serum,neg.pos.from.JT,FORCED.IN.FF,POS.mode,LH.notes,selected.rar.proposed.high.exposure.and.tox,CASRN,LH.rank,X,NEG.mode,DTSC...has.standards.,formula_original,Elissia.ID.supplier,choose.for.targeted.83,Selected.forced.in.Nurses
+
+
+=====Compare value in intersection col=====
+Table join with col: DTXSID
+Similar rows: 128
+Different rows: 0
+
